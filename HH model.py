@@ -8,7 +8,6 @@ from scipy.integrate import odeint
 def default_pars():
     pars = {}
     
-    ### typical neuron parameters ###
     ### ALL UNITS NEED TO BE IN S.I. ###
     pars['g_na']  = 120.0*milli   # Average sodoum channel conductance per unit area
     pars['g_k']   = 36.0*milli    # Average potassium channel conductance per unit area
@@ -23,10 +22,9 @@ def default_pars():
 
     ### simulation parameters ###
     pars['tmin'] = 0
-    pars['tmax'] = 50
-    pars['T']    = np.linspace(pars['tmin'], pars['tmax'], 10000) # Total duration of simulation [ms]
+    pars['tmax'] = 50*milli
+    pars['T']    = np.linspace(pars['tmin'], pars['tmax'], 10) # Total duration of simulation [ms]
     
-            
     return pars
 
 # α and β are the forward and backwards rate, respectively
@@ -55,9 +53,8 @@ def h_inf(V):
     return alpha_h(V) / (alpha_h(V) + beta_h(V))
 
 
-def derivatives(y,t0):
+def derivatives(y,t0,pars):
     der = np.zeros(4)
-    pars = default_pars()
     C_m = pars['C_m']
     
     V = y[0]
@@ -84,16 +81,15 @@ def derivatives(y,t0):
 pars = default_pars()
 
 V = pars['V']
-
 Y = np.array([V, n_inf(V), m_inf(V), h_inf(V)])
 
-sol = odeint(derivatives, Y, pars['T'])    # Solve ODE
+sol = odeint(derivatives, Y, pars['T'], args=(pars,))    # Solve ODE
 
 # Neuron potential
 fig, ax = plt.subplots(figsize=(10, 6))
 ax.plot(pars['T'], sol[:, 0])
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('V (V)')
-ax.set_title('Neuron potential with two spikes')
+ax.set_title('Neuron potential')
 plt.grid()
 plt.show()
