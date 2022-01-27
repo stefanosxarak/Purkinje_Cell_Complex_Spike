@@ -5,10 +5,11 @@ from scipy.integrate import odeint
 
 
 class HodgkinHuxley():
-
     # Hodgkin - Huxley model
+
     def default_pars(self):
         ### ALL UNITS NEED TO BE IN S.I. ###
+        # Paremeters are passed from the command line when the program is executed
         print("Please Enter all the values in S.I. units")
         self.g_na = float(input("Enter the value of gNa: "))                        # Average sodoum channel conductance per unit area
         self.g_k  = float(input("Enter the value of gK: "))                         # Average potassium channel conductance per unit area
@@ -21,13 +22,12 @@ class HodgkinHuxley():
         self.tmin = float(input("Enter the start time : "))
         self.tmax = float(input("Enter the end time: "))
         
+
         # pars={}
         # pars['g_na']  = 120.0*milli  
         # pars['g_k']   = 36.0*milli    
         # pars['g_l']   = 0.3*milli    
-
         # pars['C_m']   = 0.000001     
-
         # pars['V']     = 0.0*milli     
         # pars['Vk']    = -12.0*milli   
         # pars['Vna']   = 115.0*milli   
@@ -36,6 +36,7 @@ class HodgkinHuxley():
         ### simulation parameters ###
         # pars['tmin'] = 0
         # pars['tmax'] = 30*milli
+
         self.T    = np.linspace(self.tmin, self.tmax, 100) # Total duration of simulation [ms]
 
     # α and β are the forward and backwards rate, respectively
@@ -101,7 +102,7 @@ class HodgkinHuxley():
         return der
 
     def Main(self):
-        pars = self.default_pars()
+        self.default_pars()
 
         V = self.V
         t = self.T
@@ -125,11 +126,12 @@ class HodgkinHuxley():
         # plt.ylabel('Current')
         # plt.legend()
 
-        # plt.subplot(4,1,3)
-        plt.plot(t, sol[:,1], 'r', label='n')
-        plt.plot(t, sol[:,2], 'g', label='m')
-        plt.plot(t, sol[:,3], 'b', label='h')
-        plt.ylabel('Gating Value')
+        ax = plt.subplot()
+        ax.plot(t, sol[:,1], 'r', label='n')
+        ax.plot(t, sol[:,2], 'g', label='m')
+        ax.plot(t, sol[:,3], 'b', label='h')
+        ax.set_ylabel('Gating Value')
+        ax.set_xlabel('Time (s)')
         plt.legend()
 
         plt.show()
