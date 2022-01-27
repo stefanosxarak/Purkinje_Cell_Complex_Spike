@@ -68,10 +68,10 @@ class HodgkinHuxley():
         # no specific criteria for the time selected
         if 0.0 < t < 1:
             self.I_inj = 150.0
-            return self.I_inj
+            return self.I_inj*milli*milli/0.0001
         elif 10.0 < t < 11.0:
             self.I_inj = 50.0
-            return self.I_inj
+            return self.I_inj*milli*milli/0.0001
         return 0.0
 
 
@@ -88,9 +88,9 @@ class HodgkinHuxley():
         GK = (self.g_k / C_m) * np.power(self.n, 4.0)
         GL = self.g_l / C_m
 
-        self.I_na = GNa * (self.Vna - V)
-        self.I_k = GK * (self.Vk - V)
-        self.I_l = GL * (self.Vl - V)
+        self.I_na = GNa * (V - self.Vna )
+        self.I_k = GK * (V - self.Vk )
+        self.I_l = GL * (V - self.Vl )
 
 
         der[0] = (self.Id(t0) / C_m) - self.I_na + self.I_k + self.I_l   # dv/dt
