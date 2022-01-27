@@ -53,6 +53,13 @@ class HodgkinHuxley():
     def h_inf(self,V):
         return self.alpha_h(V) / (self.alpha_h(V) + self.beta_h(V))
 
+    def Id(self,t):
+        if 0.0 < t < 1.0:
+            return 150.0
+        elif 10.0 < t < 11.0:
+            return 50.0
+        return 0.0
+
 
     def derivatives(self,y,t0,pars):
         der = np.zeros(4)
@@ -67,33 +74,42 @@ class HodgkinHuxley():
         GK = (pars['g_k'] / C_m) * np.power(n, 4.0)
         GL = pars['g_l'] / C_m
 
-        I_na = GNa * (pars['Vna'] - V)
-        I_k = GK * (pars['Vk'] - V)
-        I_l = GL * (pars['Vl'] - V)
+        self.I_na = GNa * (pars['Vna'] - V)
+        self.I_k = GK * (pars['Vk'] - V)
+        self.I_l = GL * (pars['Vl'] - V)
 
 
-        der[0] = I_na/C_m + I_k/C_m + I_l/C_m    # dv/dt
+        der[0] = (self.Id(t0) / C_m) - self.I_na + self.I_k + self.I_l   # dv/dt
         der[1] = (self.alpha_n(V) * (1 - n)) - (self.beta_n(V) * n)    # dn/dt
         der[2] = (self.alpha_m(V) * (1 - m)) - (self.beta_m(V) * m)    # dm/dt
         der[3] = (self.alpha_h(V) * (1 - h)) - (self.beta_h(V) * h)    # dh/dt
-
+        
         return der
 
     def Main(self):
         pars = self.default_pars()
 
         V = pars['V']
+        t = pars['T']
         Y = np.array([V, self.n_inf(V), self.m_inf(V), self.h_inf(V)])
 
-        sol = odeint(self.derivatives, Y, pars['T'], args=(pars,))    # Solve ODE
+        sol = odeint(self.derivatives, Y, t, args=(pars,))    # Solve ODE
 
         # Neuron potential
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.plot(pars['T'], sol[:, 0])
+        ax.plot(t, sol[:, 0])
         ax.set_xlabel('Time (s)')
-        ax.set_ylabel('V (V)')
+        ax.set_ylabel('Membrane potential')
         ax.set_title('Neuron potential')
         plt.grid()
+
+        # plt.subplot(4,1,2)
+        # plt.plot(t, self.I_na, 'c', label='$I_{Na}$')
+        # plt.plot(t, self.I_k, 'y', label='$I_{K}$')
+        # plt.plot(t, self.I_l, 'm', label='$I_{L}$')
+        # plt.ylabel('Current')
+        # plt.legend()
+
         plt.show()
 
 if __name__ == '__main__':
