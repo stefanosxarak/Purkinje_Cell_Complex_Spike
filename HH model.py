@@ -2,16 +2,15 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-
+from sympy import *
 
 class HodgkinHuxley():
     # Hodgkin - Huxley model
-
     def default_pars(self):
         ### ALL UNITS NEED TO BE IN S.I. ###
         # Paremeters are passed from the command line when the program is executed
        
-        print("Please Enter all the values in milli units")
+        # print("Please Enter all the values in milli units")
         self.g_na = float(input("Enter the value of gNa: "))                        # Average sodoum channel conductance per unit area
         self.g_k  = float(input("Enter the value of gK: "))                         # Average potassium channel conductance per unit area
         self.g_l  = float(input("Enter the value of gl: "))                         # Average leak channel conductance per unit area
@@ -26,15 +25,33 @@ class HodgkinHuxley():
 
         self.T  = np.linspace(self.tmin*milli, self.tmax*milli, 100) # Total duration of simulation [ms]
 
+
     # α and β are the forward and backwards rate, respectively
-    # These are the original HH equations for α,β constants may vary depending on the experimental data
+    # These are the original HH equations for α,β constants vary depending on the experimental data
+    # α(v) = (A+B*V)/C + H*exp((V+D) / F) where A,B,C,D,F,H are to be fit to the data
+    # NOTE: for cases where 0/0 might occur then L'Hospital's rules must apply
     def alpha_n(self,V):
-        return 0.01 * (10 - V)/ (np.exp((10 - V) / 10) - 1)
+        x = symbols('x')
+        A = 0.01 * (10 - V)
+        B = (np.exp((10 - V) / 10) - 1)
+
+        if A == 0 and B == 0 :
+            return limit(0.01 * (10 - x) /(E**((10 - x) / 10) - 1), x,10)
+        else:
+            return A / B
     def beta_n(self,V):
         return 0.125 * np.exp(- V / 80)
 
     def alpha_m(self,V):
-        return 0.1  * (25 - V)/ (np.exp((25 - V) / 10) - 1)
+        x = symbols('x')
+        A = 0.1  * (25 - V)
+        B = (np.exp((25 - V) / 10) - 1)
+
+        if A == 0 and B == 0 :
+            return limit(0.1  * (25 - V) / (E**((25 - x) / 10) - 1), x,10)
+        else:
+            return A / B
+        
     def beta_m(self,V):
         return 4 * np.exp(- V / 18)
 
@@ -107,12 +124,14 @@ class HodgkinHuxley():
         plt.grid()
         plt.show()
 
-        # plt.subplot(4,1,2)
-        # plt.plot(t, self.I_na, 'c', label='$I_{Na}$')
-        # plt.plot(t, self.I_k, 'y', label='$I_{K}$')
-        # plt.plot(t, self.I_l, 'm', label='$I_{L}$')
-        # plt.ylabel('Current')
-        # plt.legend()
+        Idv = [Id(l) for l in t]
+        fig, ax = plt.subplots(figsize=(12, 7))
+        ax.plot(t, Idv)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel(r'Current density (uA/$cm^2$)')
+        ax.set_title('Stimulus (Current density)')
+        plt.grid()
+        plt.show()
 
         ax = plt.subplot()
         ax.plot(t, sol[:,1], 'r', label='n')
@@ -121,7 +140,6 @@ class HodgkinHuxley():
         ax.set_ylabel('Gating Value')
         ax.set_xlabel('Time (s)')
         plt.legend()
-
         plt.show()
 
 if __name__ == '__main__':
