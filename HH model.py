@@ -26,19 +26,19 @@ class HodgkinHuxley():
         # self.g_k  = 36                         
         # self.g_l  = 0.3                   
         # self.C_m  = 1
-        # self.V    = -25
+        # self.V    = -65
         # self.Vna  = 115                        
         # self.Vk   = -12                        
         # self.Vl   = 10.613                         
         # self.tmin = 0
-        # self.tmax = 20  
+        # self.tmax = 22  
 
         self.T  = np.linspace(self.tmin, self.tmax, 100) # Total duration of simulation [ms]
 
 
     # α and β are the forward and backwards rate, respectively
     # These are the original HH equations for α,β where the constants vary in order to fit adequately the data
-    # α(v) = (A+B*V)/C + H*exp((V+D) / F) where A,B,C,D,F,H are to be fit to the data
+    # α(v) = (A+B*V)/C + H*exp((V+D) / F) where A,B,C,D,F,H are constants to be fit to the data
     # NOTE: for cases where 0/0 might occur then L'Hospital's rules must apply
     def alpha_n(self,V):
         x = symbols('x')
@@ -58,7 +58,7 @@ class HodgkinHuxley():
         B = (np.exp((25 - V) / 10) - 1)
 
         if A == 0 and B == 0 :
-            return limit(0.1  * (25 - V) / (E**((25 - x) / 10) - 1), x,10)
+            return limit(0.1  * (25 - x) / (E**((25 - x) / 10) - 1), x,10)
         else:
             return A / B
         
@@ -80,13 +80,13 @@ class HodgkinHuxley():
         return self.alpha_h(V) / (self.alpha_h(V) + self.beta_h(V))
 
     def Id(self,t):
-        # time varying current
+        # time varying current(2 injections)
         # no specific criteria for the time selected
         if 2.0 < t < 3.0:
             self.I_inj = 100.0
             return self.I_inj
         elif 10.0 < t < 11.0:
-            self.I_inj = 40.0
+            self.I_inj = 50.0
             return self.I_inj
         return 0.0
 
