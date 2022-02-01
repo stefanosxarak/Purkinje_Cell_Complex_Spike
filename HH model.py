@@ -2,7 +2,9 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
-from sympy import *
+from sympy import limit,symbols,E
+
+# Nelson, M.E. (2004) Electrophysiological Models In: Databasing the Brain: From Data to Knowledge. (S. Koslow and S. Subramaniam, eds.) Wiley, New York.
 
 class HodgkinHuxley():
     # Hodgkin - Huxley model
@@ -39,6 +41,7 @@ class HodgkinHuxley():
     # α and β are the forward and backwards rate, respectively
     # These are the original HH equations for α,β where the constants vary in order to fit adequately the data
     # α(v) = (A+B*V)/C + H*exp((V+D) / F) where A,B,C,D,F,H are constants to be fit to the data
+    
     # NOTE: for cases where 0/0 might occur then L'Hospital's rules must apply
     def alpha_n(self,V):
         x = symbols('x')
@@ -104,12 +107,12 @@ class HodgkinHuxley():
         GK = self.g_k * np.power(self.n, 4.0)
         GL = self.g_l
 
-        self.I_na = GNa * (V - self.Vna )
-        self.I_k = GK * (V - self.Vk )
-        self.I_l = GL * (V - self.Vl )
+        I_na = GNa * (V - self.Vna )
+        I_k = GK * (V - self.Vk )
+        I_l = GL * (V - self.Vl )
 
 
-        der[0] = (self.Id(t0) - self.I_na - self.I_k - self.I_l) / C_m   # dv/dt
+        der[0] = (self.Id(t0) - I_na - I_k - I_l) / C_m   # dv/dt
         der[1] = (self.alpha_n(V) * (1 - self.n)) - (self.beta_n(V) * self.n)    # dn/dt
         der[2] = (self.alpha_m(V) * (1 - self.m)) - (self.beta_m(V) * self.m)    # dm/dt
         der[3] = (self.alpha_h(V) * (1 - self.h)) - (self.beta_h(V) * self.h)    # dh/dt
@@ -139,6 +142,7 @@ class HodgkinHuxley():
         ax.plot(t, sol[:,3], 'b', label='h')
         ax.set_ylabel('Gating Value')
         ax.set_xlabel('Time (s)')
+        ax.set_title('Potassium and Sodium channels')
         plt.legend()
         plt.show()
 
