@@ -1,3 +1,4 @@
+from scipy.misc import derivative
 from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,14 +28,13 @@ class HodgkinHuxley():
         self.g_k  = 36.                       
         self.g_l  = 0.3                   
         self.c_m  = 1.
-        self.v   = -65.
+        self.v   = 0.
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613                         
         self.tmin = 0.
         self.tmax = 35.  
         self.i_inj = 50.
-
         self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
 
 
@@ -52,24 +52,24 @@ class HodgkinHuxley():
         else:
             return nom / denom
     def beta_n(self,v):
-        return 0.125 * np.exp(- v/ 80)
+        return 0.125 * np.exp(- v/ 80.)
 
     def alpha_m(self,v):
-        nom = 0.1  * (25 - v)
-        denom = (np.exp((25 - v) / 10) - 1)
+        nom = 0.1  * (25. - v)
+        denom = (np.exp((25. - v) / 10.) - 1.)
 
         if nom == 0 and denom == 0 :
-            return 1.5/(-1 + np.exp(3/2))
+            return 1.5/(-1 + np.exp(3./2.))
         else:
             return nom / denom
         
     def beta_m(self,v):
-        return 4 * np.exp(- v/ 18)
+        return 4. * np.exp(- v/ 18.)
 
     def alpha_h(self,v):
-        return 0.07 * np.exp(- v/ 20)
+        return 0.07 * np.exp(- v/ 20.)
     def beta_h(self,v):
-        return 1 / (np.exp((30 -v) / 10) + 1)
+        return 1. / (np.exp((30. -v) / 10.) + 1.)
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
@@ -91,11 +91,21 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    # def frequency(self):
-    #     freq = []
-    #     for i in range(len(self.i_inj)):
-    #         rec_spikes = 
-    #         freq.append(rec_spikes/self.t)
+    def frequency(self,v):
+        v_thresh = -6.
+        v_reset = 0.
+        freq = []
+        rec_spikes = 0
+        iinj = np.linspace(0, 50., 1000)
+        for i in range(0,len(self.t)-1):
+            if v[i] >= v_thresh:    # if voltage over threshold
+                rec_spikes +=1      # record spike event
+                v[i+1] = v_reset    # reset voltage
+
+        for n in range(len(iinj)):
+            freq.append(rec_spikes/self.tmax)
+        print(freq)
+        return freq
 
     def derivatives(self,y,t):
         der = np.zeros(4)
@@ -130,6 +140,9 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         sol = odeint(self.derivatives, y, t)    # Solve ODE
+        iinj = np.linspace(0, 50., 1000)
+
+        firing_rate = self.frequency(sol[:,1]*milli)
 
 
         ax = plt.subplot()
@@ -150,13 +163,12 @@ class HodgkinHuxley():
         plt.legend()
         plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(self.i_inj, freq)
-        # ax.set_ylabel("Input Current(A)")
-        # ax.set_xlabel("Firing rate(spikes/s)")
-        # ax.set_title('F-I Curve')
-        # plt.legend()
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(iinj*milli, firing_rate)
+        ax.set_xlabel("Input Current(A)")
+        ax.set_ylabel("Firing rate(spikes/s)")
+        ax.set_title('F-I Curve')
+        plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
