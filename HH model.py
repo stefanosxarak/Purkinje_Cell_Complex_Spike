@@ -1,4 +1,3 @@
-from scipy.misc import derivative
 from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,13 +27,15 @@ class HodgkinHuxley():
         self.g_k  = 36.                       
         self.g_l  = 0.3                   
         self.c_m  = 1.
-        self.v   = 0.
+        self.v   = -70.
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613                         
         self.tmin = 0.
         self.tmax = 35.  
         self.i_inj = 50.
+        
+        # self.dt = 0.001
         self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
 
 
@@ -91,21 +92,19 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    def frequency(self,v):
-        v_thresh = -6.
-        v_reset = 0.
-        freq = []
-        rec_spikes = 0
-        iinj = np.linspace(0, 50., 1000)
-        for i in range(0,len(self.t)-1):
-            if v[i] >= v_thresh:    # if voltage over threshold
-                rec_spikes +=1      # record spike event
-                v[i+1] = v_reset    # reset voltage
+    # def frequency(self,v):
+    #     rec_spikes = 0               # record spike times
+    #     v_reset = 0
+    #     v_thresh = 0.6
+    #     self.firing_rate = []
+    #     iinj = np.linspace(0, 50., 1000)
+    #     for n in range(len(iinj)):
+    #         for it in range(0,len(self.t)-1):
+    #             if v[it] >= v_thresh:
+    #                 rec_spikes +=1
+    #                 v[it] = v_reset
+    #     self.firing_rate.append(rec_spikes/self.tmax)
 
-        for n in range(len(iinj)):
-            freq.append(rec_spikes/self.tmax)
-        print(freq)
-        return freq
 
     def derivatives(self,y,t):
         der = np.zeros(4)
@@ -142,7 +141,7 @@ class HodgkinHuxley():
         sol = odeint(self.derivatives, y, t)    # Solve ODE
         iinj = np.linspace(0, 50., 1000)
 
-        firing_rate = self.frequency(sol[:,1]*milli)
+        # self.frequency(sol[:,1])
 
 
         ax = plt.subplot()
@@ -151,6 +150,7 @@ class HodgkinHuxley():
         ax.set_ylabel('Membrane potential (v)')
         ax.set_title('Neuron potential')
         plt.grid()
+        plt.savefig('Neuron Potential')
         plt.show()
 
         ax = plt.subplot()
@@ -161,14 +161,16 @@ class HodgkinHuxley():
         ax.set_xlabel('Time (s)')
         ax.set_title('Potassium and Sodium channels')
         plt.legend()
+        plt.savefig('Potassium and Sodium channels')
         plt.show()
 
-        ax = plt.subplot()
-        ax.plot(iinj*milli, firing_rate)
-        ax.set_xlabel("Input Current(A)")
-        ax.set_ylabel("Firing rate(spikes/s)")
-        ax.set_title('F-I Curve')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(iinj, self.firing_rate)
+        # ax.set_xlabel("Input Current(A)")
+        # ax.set_ylabel("Firing rate(spikes/s)")
+        # ax.set_title('f-I Curve')
+        # plt.savefig('f-I Curve')
+        # plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
