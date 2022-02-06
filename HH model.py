@@ -93,30 +93,30 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    def frequency(self,v):
-        rec_spikes = 0               # record spike times
-        self.firing_rate = []
-        self.iinj = np.linspace(0, 10., 1000)
+    # def frequency(self,v):
+    #     rec_spikes = 0               # record spike times
+    #     self.firing_rate = []
+    #     self.iinj = np.linspace(0, 10., 1000)
 
-        for n in range(len(self.iinj)):
-            for it in range(0,len(self.t)-1):
+    #     for n in range(len(self.iinj)):
+    #         for it in range(0,len(self.t)-1):
 
-                if v[it] >= self.vthresh:
-                    rec_spikes +=1
-                    v[it+1] = self.vrest
-            self.firing_rate.append(rec_spikes/self.tmax*milli)
+    #             if v[it] >= self.vthresh:
+    #                 rec_spikes +=1
+    #                 v[it+1] = self.vrest
+    #         self.firing_rate.append(rec_spikes/self.tmax*milli)
 
 
     def derivatives(self,y,t):
         der = np.zeros(4)
         
         v= y[0]
-        self.n = y[1]
-        self.m = y[2]
-        self.h = y[3]
+        n = y[1]
+        m = y[2]
+        h = y[3]
 
-        gNa = self.g_na * np.power(self.m, 3.0) * self.h
-        gK = self.g_k * np.power(self.n, 4.0)
+        gNa = self.g_na * np.power(m, 3.0) * h
+        gK = self.g_k * np.power(n, 4.0)
         gL = self.g_l
 
         i_na = gNa * (v- self.vna )
@@ -125,9 +125,9 @@ class HodgkinHuxley():
 
 
         der[0] = (self.i_inj - i_na - i_k - i_l) / self.c_m   # dv/dt
-        der[1] = (self.alpha_n(v) * (1 - self.n)) - (self.beta_n(v) * self.n)    # dn/dt
-        der[2] = (self.alpha_m(v) * (1 - self.m)) - (self.beta_m(v) * self.m)    # dm/dt
-        der[3] = (self.alpha_h(v) * (1 - self.h)) - (self.beta_h(v) * self.h)    # dh/dt
+        der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
+        der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
+        der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
         
         return der
 
@@ -138,11 +138,15 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         sol = odeint(self.derivatives, y, t)    # Solve ODE
+        v = sol[:,0]
+        n = sol[:,1]
+        m = sol[:,2]
+        h = sol[:,3]
 
-        self.frequency(sol[:,1])
+        # self.frequency(sol[:,1])
 
         ax = plt.subplot()
-        ax.plot(t*milli, sol[:, 0]*milli)
+        ax.plot(t*milli, v*milli)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Membrane potential (v)')
         ax.set_title('Neuron potential')
@@ -151,34 +155,36 @@ class HodgkinHuxley():
         plt.show()
 
         ax = plt.subplot()
-        ax.plot(t*milli, sol[:,1], 'b', label='Potassium Channel')
-        ax.plot(t*milli, sol[:,2], 'g', label='Sodium (Opening)')
-        ax.plot(t*milli, sol[:,3], 'r', label='Sodium Channel (Closing)')
+        ax.plot(t*milli, n, 'b', label='Potassium Channel')
+        ax.plot(t*milli, m, 'g', label='Sodium (Opening)')
+        ax.plot(t*milli, h, 'r', label='Sodium Channel (Closing)')
         ax.set_ylabel('Gating value')
-        ax.set_xlabel('Time (s)')
+        ax.set_xlabel('Voltage (V)')
         ax.set_title('Potassium and Sodium channels')
         plt.legend()
         plt.savefig('Potassium and Sodium channels (time)')
         plt.show()
 
+
+        # Trajectories with limit cycles
         ax = plt.subplot()
-        ax.plot(sol[:, 0]*milli, sol[:,1], 'b', label='Potassium Channel')
-        ax.plot(sol[:, 0]*milli, sol[:,2], 'g', label='Sodium (Opening)')
-        ax.plot(sol[:, 0]*milli, sol[:,3], 'r', label='Sodium Channel (Closing)')
+        ax.plot(sol[:, 0]*milli, n, 'b', label='Vm - n')
+        ax.plot(sol[:, 0]*milli, m, 'g', label='Vm - m')
+        ax.plot(sol[:, 0]*milli, h, 'r', label='Vm - h')
         ax.set_ylabel('Gating value')
         ax.set_xlabel('Voltage (V)')
-        ax.set_title('Potassium and Sodium channels')
+        ax.set_title('Limit cycles')
         plt.legend()
-        plt.savefig('Potassium and Sodium channels (voltage)')
+        plt.savefig('Limit Cycles')
         plt.show()
 
-        ax = plt.subplot()
-        ax.plot(self.iinj, self.firing_rate)
-        ax.set_xlabel("Input Current(A)")
-        ax.set_ylabel("Firing rate(spikes/s)")
-        ax.set_title('f-I Curve')
-        plt.savefig('f-I Curve')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(self.iinj, self.firing_rate)
+        # ax.set_xlabel("Input Current(A)")
+        # ax.set_ylabel("Firing rate(spikes/s)")
+        # ax.set_title('f-I Curve')
+        # plt.savefig('f-I Curve')
+        # plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
