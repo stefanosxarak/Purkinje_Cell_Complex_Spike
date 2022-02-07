@@ -144,7 +144,7 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         sol = odeint(self.derivatives, y, t)    # Solve ODE
-        v = sol[:,0]
+        v = sol[:,0]*milli
         n = sol[:,1]
         m = sol[:,2]
         h = sol[:,3]
@@ -152,7 +152,7 @@ class HodgkinHuxley():
         self.frequency(sol[:,1])
 
         ax = plt.subplot()
-        ax.plot(t*milli, v*milli)
+        ax.plot(t*milli, v)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Membrane potential (v)')
         ax.set_title('Neuron potential')
@@ -174,9 +174,9 @@ class HodgkinHuxley():
 
         # Trajectories with limit cycles
         ax = plt.subplot()
-        ax.plot(sol[:, 0]*milli, n, 'b', label='V - n')
-        ax.plot(sol[:, 0]*milli, m, 'g', label='V - m')
-        ax.plot(sol[:, 0]*milli, h, 'r', label='V - h')
+        ax.plot(v, n, 'b', label='V - n')
+        ax.plot(v, m, 'g', label='V - m')
+        ax.plot(v, h, 'r', label='V - h')
         ax.set_ylabel('Gating value')
         ax.set_xlabel('Voltage (V)')
         ax.set_title('Limit cycles')
@@ -185,8 +185,8 @@ class HodgkinHuxley():
         plt.show()
 
         ax = plt.subplot()
-        ax.plot(self.iinj, self.firing_rate)
-        ax.set_xlabel("Input Current(A)")
+        ax.plot(self.iinj*0.01, self.firing_rate)
+        ax.set_xlabel("Input Current(A/m^2)")
         ax.set_ylabel("Firing rate(spikes/s)")
         ax.set_title('f-I Curve')
         plt.savefig('f-I Curve')
