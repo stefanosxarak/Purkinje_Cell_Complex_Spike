@@ -93,18 +93,24 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    # def frequency(self,v):
-    #     rec_spikes = 0               # record spike times
-    #     self.firing_rate = []
-    #     self.iinj = np.linspace(0, 10., 1000)
+    def frequency(self,v):
+        rec_spikes = 0               # record spike times
+        self.firing_rate = []
+        self.iinj = np.linspace(0, self.i_inj, 1000)
 
-    #     for n in range(len(self.iinj)):
-    #         for it in range(0,len(self.t)-1):
+        for n in range(len(self.iinj)):
+            for it in range(0,len(self.t)-1):
 
-    #             if v[it] >= self.vthresh:
-    #                 rec_spikes +=1
-    #                 v[it+1] = self.vrest
-    #         self.firing_rate.append(rec_spikes/self.tmax*milli)
+                if v[it] >= self.vthresh:
+                    rec_spikes +=1
+                    # v[it+1] = self.vrest
+            self.firing_rate.append(rec_spikes/self.tmax*milli)
+
+        # max_I = []
+        # for i in range(len(self.iinj)):
+        #     if self.firing_rate[i] ==0:
+        #         max_I.append(self.iinj[i])          # threshold input current.
+        # print(max(max_I))
 
 
     def derivatives(self,y,t):
@@ -143,7 +149,7 @@ class HodgkinHuxley():
         m = sol[:,2]
         h = sol[:,3]
 
-        # self.frequency(sol[:,1])
+        self.frequency(sol[:,1])
 
         ax = plt.subplot()
         ax.plot(t*milli, v*milli)
@@ -159,7 +165,7 @@ class HodgkinHuxley():
         ax.plot(t*milli, m, 'g', label='Sodium (Opening)')
         ax.plot(t*milli, h, 'r', label='Sodium Channel (Closing)')
         ax.set_ylabel('Gating value')
-        ax.set_xlabel('Voltage (V)')
+        ax.set_xlabel('Time (s)')
         ax.set_title('Potassium and Sodium channels')
         plt.legend()
         plt.savefig('Potassium and Sodium channels (time)')
@@ -168,9 +174,9 @@ class HodgkinHuxley():
 
         # Trajectories with limit cycles
         ax = plt.subplot()
-        ax.plot(sol[:, 0]*milli, n, 'b', label='Vm - n')
-        ax.plot(sol[:, 0]*milli, m, 'g', label='Vm - m')
-        ax.plot(sol[:, 0]*milli, h, 'r', label='Vm - h')
+        ax.plot(sol[:, 0]*milli, n, 'b', label='V - n')
+        ax.plot(sol[:, 0]*milli, m, 'g', label='V - m')
+        ax.plot(sol[:, 0]*milli, h, 'r', label='V - h')
         ax.set_ylabel('Gating value')
         ax.set_xlabel('Voltage (V)')
         ax.set_title('Limit cycles')
@@ -178,13 +184,13 @@ class HodgkinHuxley():
         plt.savefig('Limit Cycles')
         plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(self.iinj, self.firing_rate)
-        # ax.set_xlabel("Input Current(A)")
-        # ax.set_ylabel("Firing rate(spikes/s)")
-        # ax.set_title('f-I Curve')
-        # plt.savefig('f-I Curve')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(self.iinj, self.firing_rate)
+        ax.set_xlabel("Input Current(A)")
+        ax.set_ylabel("Firing rate(spikes/s)")
+        ax.set_title('f-I Curve')
+        plt.savefig('f-I Curve')
+        plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
