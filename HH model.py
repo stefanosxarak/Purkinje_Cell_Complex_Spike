@@ -12,16 +12,19 @@ class HodgkinHuxley():
         # Paremeters are passed from the command line when the program is executed
        
         # print("Please Enter all the values in milli units (graphs will automatically convert to S.I. units)")
-        # self.g_na = float(input("Enter the value of gNa: "))                        # Average sodoum channel conductance per unit area
-        # self.g_k  = float(input("Enter the value of gK: "))                         # Average potassium channel conductance per unit area
-        # self.g_l  = float(input("Enter the value of gl: "))                         # Average leak channel conductance per unit area
+        # self.g_na = float(input("Enter the value of gNa: "))                                   # Average sodoum channel conductance per unit area
+        # self.g_k  = float(input("Enter the value of gK: "))                                   # Average potassium channel conductance per unit area
+        # self.g_l  = float(input("Enter the value of gl: "))                                   # Average leak channel conductance per unit area
         # self.C_m  = float(input("Enter the value of membrane capacitance in μ (micro) units: "))   # Membrane capacitance per unit area
-        # self.v   = float(input("Enter the value of the membrane potential v: "))   # vis the membrane potential
-        # self.vna  = float(input("Enter the value of vNa: "))                        # Potassium potential
-        # self.vk   = float(input("Enter the value of vK: "))                         # Sodium potential
-        # self.vl   = float(input("Enter the value of vl: "))                         # Leak potential
+        # self.v    = float(input("Enter the value of the membrane potential v: "))             # vis the membrane potential
+        # self.vna  = float(input("Enter the value of vNa: "))                                  # Potassium potential
+        # self.vk   = float(input("Enter the value of vK: "))                                   # Sodium potential
+        # self.vl   = float(input("Enter the value of vl: "))                                   # Leak potential
+        # self.vthresh   = float(input("Enter the value of vthresh: "))                         # Voltage threshold for spikes
         # self.tmin = float(input("Enter the start time : "))
         # self.tmax = float(input("Enter the end time: "))
+        # self.i_inj   = float(input("Enter the value of Input current i_inj: "))               # Input current
+
                 
         self.g_na = 120.               
         self.g_k  = 36.                       
@@ -94,23 +97,24 @@ class HodgkinHuxley():
     #     return 0.0
 
     def frequency(self,v):
-        rec_spikes = 0               # record spike times
         self.firing_rate = []
         self.iinj = np.linspace(0, self.i_inj, 1000)
+        rec_spikes = 0               # record spike times
 
         for n in range(len(self.iinj)):
-            for it in range(0,len(self.t)-1):
-
-                if v[it] >= self.vthresh:
+            for l in range(len(self.t)-1):
+                # print(self.vthresh)
+                # print(v[l])
+                if v[l] >= self.vthresh:
                     rec_spikes +=1
-                    # v[it+1] = self.vrest
-            self.firing_rate.append(rec_spikes/self.tmax*milli)
+                    v[l+1] = self.vrest
+            self.firing_rate.append(rec_spikes/self.tmax)
 
-        # max_I = []
+        # self.max_I = []
         # for i in range(len(self.iinj)):
         #     if self.firing_rate[i] ==0:
-        #         max_I.append(self.iinj[i])          # threshold input current.
-        # print(max(max_I))
+        #         self.max_I.append(self.iinj[i])          # threshold input current.
+        # print(max(self.max_I))
 
 
     def derivatives(self,y,t):
@@ -149,21 +153,21 @@ class HodgkinHuxley():
         m = sol[:,2]
         h = sol[:,3]
 
-        self.frequency(sol[:,1])
+        self.frequency(sol[:,0]) #TODO change sol to v if you want to convert at the end
 
         ax = plt.subplot()
         ax.plot(t*milli, v)
         ax.set_xlabel('Time (s)')
-        ax.set_ylabel('Membrane potential (v)')
+        ax.set_ylabel('Membrane potential (V)')
         ax.set_title('Neuron potential')
         plt.grid()
         plt.savefig('Neuron Potential')
         plt.show()
 
         ax = plt.subplot()
-        ax.plot(t*milli, n, 'b', label='Potassium Channel')
-        ax.plot(t*milli, m, 'g', label='Sodium (Opening)')
-        ax.plot(t*milli, h, 'r', label='Sodium Channel (Closing)')
+        ax.plot(t*milli, n, 'b', label='Potassium Channel: n')
+        ax.plot(t*milli, m, 'g', label='Sodium (Opening): m')
+        ax.plot(t*milli, h, 'r', label='Sodium Channel (Closing): h')
         ax.set_ylabel('Gating value')
         ax.set_xlabel('Time (s)')
         ax.set_title('Potassium and Sodium channels')
@@ -184,10 +188,12 @@ class HodgkinHuxley():
         plt.savefig('Limit Cycles')
         plt.show()
 
+        # F-I curve
         ax = plt.subplot()
-        ax.plot(self.iinj*0.01, self.firing_rate)
-        ax.set_xlabel("Input Current(A/m^2)")
-        ax.set_ylabel("Firing rate(spikes/s)")
+        ax.plot(self.iinj, self.firing_rate)
+        # ax.plot(max(self.max_I))
+        ax.set_xlabel("Input Current(μA/cm^2)")
+        ax.set_ylabel("Firing rate(Hz)")
         ax.set_title('f-I Curve')
         plt.savefig('f-I Curve')
         plt.show()
