@@ -45,14 +45,16 @@ class Markov():
         der[11] = ξ*B + F*I[5] - O*N - O*ε  # dO/dt
         der[12] = O * ε - B*ξ   # dB/dt
 
-        print(der[0]+der[1]+der[5])
-        print(c[0]+c[1]+I[0])
+        print(der[0]+der[1]+der[5]) # has to be 0
+        print(c[0]+c[1]+I[0])       # has to be 1
 
         return der
 
     def Main(self):
-        self.derivatives(c,I,O,B)
-        # markov = odeint(self.derivatives, y, t)    # Solve ODE
+        t = self.t
+        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
+        # self.derivatives(c,I,O,B)
+        markov = odeint(self.derivatives, y, t)    # Solve ODE
 
 if __name__ == '__main__':
     runner = Markov()

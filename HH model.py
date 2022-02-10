@@ -30,15 +30,15 @@ class HodgkinHuxley():
         self.g_k  = 36.*milli                       
         self.g_l  = 0.3*milli                   
         self.c_m  = 1.*mu
-        self.v   = 0.*milli
-        self.vna  = 115.*milli                        
-        self.vk   = -12.*milli                        
-        self.vl   = 10.613*milli   
+        self.v   = 0.
+        self.vna  = 115.                        
+        self.vk   = -12.                        
+        self.vl   = 10.613   
         self.vrest = 0.*milli
-        self.vthresh = -55.*milli                      
+        self.vthresh = 55.*milli                      
         self.tmin = 0.*milli
         self.tmax = 35.*milli  
-        self.i_inj = 10.*mu
+        self.i_inj = 10.*milli
         
         # self.dt = 0.001
         self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
@@ -50,31 +50,31 @@ class HodgkinHuxley():
     
     # NOTE: for cases where 0/0 might occur then L'Hospital's rules must apply
     def alpha_n(self,v):
-        nom = 0.01*kHz * (10*milli - v)
-        denom = (np.exp((10*milli - v) / 10*milli) - 1)
+        nom = 0.01* (10 - v)
+        denom = (np.exp((10 - v) / 10) - 1)
 
         if nom == 0 and denom == 0 :
             return 0.1
         else:
-            return nom / denom
+            return (nom / denom)*kHz
     def beta_n(self,v):
-        return 0.125*kHz * np.exp(- v/ 80.*milli)
+        return (0.125 * np.exp(- v/ 80.))*kHz
 
     def alpha_m(self,v):
-        nom = 0.1*kHz  * (25.*milli - v)
-        denom = (np.exp((25.*milli - v) / 10.*milli) - 1.)
+        nom = 0.1  * (25. - v)
+        denom = (np.exp((25. - v) / 10.) - 1.)
 
         if nom == 0 and denom == 0 :
             return 1.5/(-1 + np.exp(3./2.))
         else:
-            return nom / denom
+            return (nom / denom)*kHz
     def beta_m(self,v):
-        return 4.*kHz * np.exp(- v/ 18.*milli)
+        return (4. * np.exp(- v/ 18.))*kHz
 
     def alpha_h(self,v):
-        return 0.07*kHz * np.exp(- v/ 20.*milli)
+        return (0.07 * np.exp(- v/ 20.))*kHz
     def beta_h(self,v):
-        return 1.*kHz / (np.exp((30.*milli -v) / 10.*milli) + 1.)
+        return (1. / (np.exp((30. -v) / 10.) + 1.))*kHz
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
@@ -96,19 +96,20 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    # def frequency(self,v):
-    #     self.firing_rate = []
-    #     self.iinj = np.linspace(0, self.i_inj, 1000)
-    #     rec_spikes = 0               # record spike times
+    def frequency(self,v):
+        v = v *milli
+        self.firing_rate = []
+        self.iinj = np.linspace(0, self.i_inj, 1000)
+        rec_spikes = 0               # record spike times
 
-    #     for n in range(len(self.iinj)):
-    #         for l in range(len(self.t)-1):
-    #             # print(self.vthresh)
-    #             # print(v[l])
-    #             if v[l] >= self.vthresh:
-    #                 rec_spikes +=1
-    #                 v[l+1] = self.vrest
-    #         self.firing_rate.append(rec_spikes/self.tmax)
+        for n in range(len(self.iinj)):
+            for l in range(len(self.t)-1):
+                # print(self.vthresh)
+                # print(v[l])
+                if v[l] >= self.vthresh:
+                    rec_spikes +=1
+                    # v[l+1] = self.vrest
+            self.firing_rate.append(rec_spikes/self.tmax)
 
         # self.max_I = []
         # for i in range(len(self.iinj)):
@@ -148,12 +149,12 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         sol = odeint(self.derivatives, y, t)    # Solve ODE
-        v = sol[:,0]
+        v = sol[:,0]*milli
         n = sol[:,1]
         m = sol[:,2]
         h = sol[:,3]
 
-        # self.frequency(sol[:,0]) #TODO change sol to v if you want to convert at the end
+        self.frequency(sol[:,0]) #TODO change sol to v if you want to convert at the end
 
         ax = plt.subplot()
         ax.plot(t, v)
@@ -164,39 +165,39 @@ class HodgkinHuxley():
         plt.savefig('Neuron Potential')
         plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(t*milli, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t*milli, m, 'g', label='Sodium (Opening): m')
-        # ax.plot(t*milli, h, 'r', label='Sodium Channel (Closing): h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (s)')
-        # ax.set_title('Potassium and Sodium channels')
-        # plt.legend()
-        # plt.savefig('Potassium and Sodium channels (time)')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, n, 'b', label='Potassium Channel: n')
+        ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Time (s)')
+        ax.set_title('Potassium and Sodium channels')
+        plt.legend()
+        plt.savefig('Potassium and Sodium channels (time)')
+        plt.show()
 
 
         # # Trajectories with limit cycles
-        # ax = plt.subplot()
-        # ax.plot(v, n, 'b', label='V - n')
-        # ax.plot(v, m, 'g', label='V - m')
-        # ax.plot(v, h, 'r', label='V - h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (V)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
-        # plt.savefig('Limit Cycles')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(v, n, 'b', label='V - n')
+        ax.plot(v, m, 'g', label='V - m')
+        ax.plot(v, h, 'r', label='V - h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Voltage (V)')
+        ax.set_title('Limit cycles')
+        plt.legend()
+        plt.savefig('Limit Cycles')
+        plt.show()
 
         # F-I curve
-        # ax = plt.subplot()
-        # ax.plot(self.iinj, self.firing_rate)
-        # # ax.plot(max(self.max_I))
-        # ax.set_xlabel("Input Current(μA/cm^2)")
-        # ax.set_ylabel("Firing rate(Hz)")
-        # ax.set_title('f-I Curve')
-        # plt.savefig('f-I Curve')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(self.iinj, self.firing_rate)
+        # ax.plot(max(self.max_I))
+        ax.set_xlabel("Input Current(A)")
+        ax.set_ylabel("Firing rate(Hz)")
+        ax.set_title('f-I Curve')
+        plt.savefig('f-I Curve')
+        plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
