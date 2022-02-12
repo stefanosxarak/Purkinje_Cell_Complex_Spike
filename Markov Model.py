@@ -1,10 +1,10 @@
 from Units import *
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
 class Markov():
-
+    # Current through the resurgent sodium channel is described using a Markovian Scheme
+    v = 0.
     def alpha(self,v):
         return 150* np.exp(v/20*mv)
     def beta(self,v):
@@ -12,8 +12,7 @@ class Markov():
     def ksi(self,v):
         return 0.03 * np.exp(-v/25*mv)
 
-    def derivatives(self,c,I,O,B):
-        v = 0.
+    def derivatives(self,y,t,c,I,O,B):
         γ = 150         # m*s**(-1)
         δ = 40          # m*s**(-1)
         ε = 1.75        # m*s**(-1)
@@ -23,9 +22,9 @@ class Markov():
         F = 0.005       # m*s**(-1)
         a = ((U/D)/(F/N))**(1/8)
 
-        α = self.alpha(v)
-        β = self.beta(v)
-        ξ = self.ksi(v)
+        α = y[1]
+        β = y[2]
+        ξ = y[3]
 
         der = np.zeros(13)
         
@@ -45,16 +44,16 @@ class Markov():
         der[11] = ξ*B + F*I[5] - O*N - O*ε  # dO/dt
         der[12] = O * ε - B*ξ   # dB/dt
 
-        print(der[0]+der[1]+der[5]) # has to be 0
         print(c[0]+c[1]+I[0])       # has to be 1
-
+        
         return der
 
     def Main(self):
-        t = self.t
-        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
-        # self.derivatives(c,I,O,B)
-        markov = odeint(self.derivatives, y, t)    # Solve ODE
+        v = self.v
+        y = np.array([self.v, self.alpha(v), self.beta(v), self.ksi(v)], dtype= 'float64')
+        markov = odeint(self.derivatives, y, self.t,args=(c,I,O,B))    # Solve ODE
+
+        print(markov[:,0]+markov[:,1]+markov[:,5]) # has to be 0
 
 if __name__ == '__main__':
     runner = Markov()

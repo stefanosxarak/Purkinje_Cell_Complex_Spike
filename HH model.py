@@ -54,7 +54,7 @@ class HodgkinHuxley():
         denom = (np.exp((10 - v) / 10) - 1)
 
         if nom == 0 and denom == 0 :
-            return 0.1
+            return 0.1*kHz
         else:
             return (nom / denom)*kHz
     def beta_n(self,v):
@@ -65,7 +65,7 @@ class HodgkinHuxley():
         denom = (np.exp((25. - v) / 10.) - 1.)
 
         if nom == 0 and denom == 0 :
-            return 1.5/(-1 + np.exp(3./2.))
+            return (1.5/(-1 + np.exp(3./2.)))*kHz
         else:
             return (nom / denom)*kHz
     def beta_m(self,v):
@@ -97,20 +97,17 @@ class HodgkinHuxley():
     #     return 0.0
 
     def frequency(self,v):
-        v = v *milli
-        self.firing_rate = []
+        firing_rate = []
         self.iinj = np.linspace(0, self.i_inj, 1000)
         rec_spikes = 0               # record spike times
 
         for n in range(len(self.iinj)):
-            for l in range(len(self.t)-1):
-                # print(self.vthresh)
-                # print(v[l])
-                if v[l] >= self.vthresh:
-                    rec_spikes +=1
-                    # v[l+1] = self.vrest
-            self.firing_rate.append(rec_spikes/self.tmax)
-
+            # for l in range(len(self.t)-1):
+            if v[n] >= self.vthresh:
+                rec_spikes +=1
+            firing_rate.append(rec_spikes/self.tmax)
+        print(firing_rate)
+        return firing_rate
         # self.max_I = []
         # for i in range(len(self.iinj)):
         #     if self.firing_rate[i] ==0:
@@ -154,7 +151,7 @@ class HodgkinHuxley():
         m = sol[:,2]
         h = sol[:,3]
 
-        self.frequency(sol[:,0]) #TODO change sol to v if you want to convert at the end
+        firing_rate = self.frequency(v)
 
         ax = plt.subplot()
         ax.plot(t, v)
@@ -191,7 +188,7 @@ class HodgkinHuxley():
 
         # F-I curve
         ax = plt.subplot()
-        ax.plot(self.iinj, self.firing_rate)
+        ax.plot(self.iinj, firing_rate)
         # ax.plot(max(self.max_I))
         ax.set_xlabel("Input Current(A)")
         ax.set_ylabel("Firing rate(Hz)")
