@@ -2,12 +2,14 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
+from Markov_Model import *
 
 # Nelson, M.E. (2004) Electrophysiological Models In: Databasing the Brain: From Data to Knowledge. (S. Koslow and S. Subramaniam, eds.) Wiley, New York.
 
 class HodgkinHuxley():
     # Hodgkin - Huxley model
-    def default_pars(self):
+
+    def __init__(self):
         ### ALL UNITS NEED TO BE IN S.I. ###
         # Paremeters are passed from the command line when the program is executed
        
@@ -106,7 +108,7 @@ class HodgkinHuxley():
             if v[n] >= self.vthresh:
                 rec_spikes +=1
             firing_rate.append(rec_spikes/self.tmax)
-        print(firing_rate)
+        # print(firing_rate)
         return firing_rate
         # self.max_I = []
         # for i in range(len(self.iinj)):
@@ -140,7 +142,6 @@ class HodgkinHuxley():
         return der
 
     def Main(self):
-        self.default_pars()
         v= self.v
         t = self.t
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
