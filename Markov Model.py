@@ -45,12 +45,12 @@ class Markov():
         der[12] = O * ε - B*ξ   # dB/dt
 
         print(c[0]+c[1]+I[0])       # has to be 1
-        
+
         return der
 
     def Main(self):
         v = self.v
-        y = np.array([self.v, self.alpha(v), self.beta(v), self.ksi(v)], dtype= 'float64')
+        y = np.array([v, self.alpha(v), self.beta(v), self.ksi(v)], dtype= 'float64')
         markov = odeint(self.derivatives, y, self.t,args=(c,I,O,B))    # Solve ODE
 
         print(markov[:,0]+markov[:,1]+markov[:,5]) # has to be 0
