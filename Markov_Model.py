@@ -68,4 +68,4 @@ class Markov():
  
 if __name__ == '__main__':
     runner = Markov()
-    runner.Exe()
+    runner.Main()

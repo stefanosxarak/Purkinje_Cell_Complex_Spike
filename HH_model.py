@@ -28,10 +28,10 @@ class HodgkinHuxley():
         # self.i_inj   = float(input("Enter the value of Input current i_inj: "))                # Input current
 
                 
-        self.g_na = 120.             
-        self.g_k  = 36.                       
-        self.g_l  = 0.3                   
-        self.c_m  = 1.
+        self.g_na = 120.*milli               
+        self.g_k  = 36.*milli                       
+        self.g_l  = 0.3*milli                   
+        self.c_m  = 1.*mu
         self.v   = 0.
         self.vna  = 115.                        
         self.vk   = -12.                        
@@ -39,7 +39,7 @@ class HodgkinHuxley():
         self.vthresh = 55.*milli                      
         self.tmin = 0.*milli
         self.tmax = 35.*milli  
-        self.i_inj = 10.*10**(-2)
+        self.i_inj = 10.*milli   #TODO: ask about this 10**(-2) conversion is done in cm2?
         
         # self.dt = 0.001
         self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
@@ -101,12 +101,24 @@ class HodgkinHuxley():
         firing_rate = []
         self.iinj = np.linspace(0, self.i_inj, 1000)
         rec_spikes = 0               # record spike times
+        rec_passes = 0
+        idx =[]
 
-        for n in range(len(self.iinj)):
-            # for l in range(len(self.t)-1):
-            if v[n] >= self.vthresh:
-                rec_spikes +=1
-            firing_rate.append(rec_spikes/self.tmax)
+        for i in range(len(self.iinj)):
+            # print("voltage",v[i])
+            # print("threshold",self.vthresh)
+            idx.append(np.sign(v[i] - self.vthresh))
+        for j in range(len(self.iinj)):
+            if idx[j-1] != idx[j]:
+                rec_passes += 1
+            firing_rate.append(rec_passes/2/self.tmax)
+
+
+
+        # for n in range(len(self.iinj)):
+        #     if v[n] >= self.vthresh:
+        #         rec_spikes +=1
+        #     firing_rate.append(rec_spikes/self.tmax)
         # print(firing_rate)
         return firing_rate
         # self.max_I = []
@@ -141,9 +153,13 @@ class HodgkinHuxley():
         return der
 
     def Main(self):
-        v = self.v 
+        v = self.v
         t = self.t
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
+
+        # print(self.n_inf(v))
+        # print(self.m_inf(v))
+        # print(self.h_inf(v))
 
         sol = odeint(self.derivatives, y, t)    # Solve ODE
         v = sol[:,0]*milli
@@ -151,50 +167,50 @@ class HodgkinHuxley():
         m = sol[:,2]
         h = sol[:,3]
 
-        # firing_rate = self.frequency(v)
+        firing_rate = self.frequency(v)
 
-        ax = plt.subplot()
-        ax.plot(t, v)
-        ax.set_xlabel('Time (s)')
-        ax.set_ylabel('Membrane potential (V)')
-        ax.set_title('Neuron potential')
-        plt.grid()
-        plt.savefig('Neuron Potential')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, v)
+        # ax.set_xlabel('Time (s)')
+        # ax.set_ylabel('Membrane potential (V)')
+        # ax.set_title('Neuron potential')
+        # plt.grid()
+        # plt.savefig('Neuron Potential')
+        # plt.show()
 
-        ax = plt.subplot()
-        ax.plot(t, n, 'b', label='Potassium Channel: n')
-        ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Time (s)')
-        ax.set_title('Potassium and Sodium channels')
-        plt.legend()
-        plt.savefig('Potassium and Sodium channels (time)')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, n, 'b', label='Potassium Channel: n')
+        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Time (s)')
+        # ax.set_title('Potassium and Sodium channels')
+        # plt.legend()
+        # plt.savefig('Potassium and Sodium channels (time)')
+        # plt.show()
 
 
-        # # Trajectories with limit cycles
-        ax = plt.subplot()
-        ax.plot(v, n, 'b', label='V - n')
-        ax.plot(v, m, 'g', label='V - m')
-        ax.plot(v, h, 'r', label='V - h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Voltage (V)')
-        ax.set_title('Limit cycles')
-        plt.legend()
-        plt.savefig('Limit Cycles')
-        plt.show()
+        # # # Trajectories with limit cycles
+        # ax = plt.subplot()
+        # ax.plot(v, n, 'b', label='V - n')
+        # ax.plot(v, m, 'g', label='V - m')
+        # ax.plot(v, h, 'r', label='V - h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Voltage (V)')
+        # ax.set_title('Limit cycles')
+        # plt.legend()
+        # plt.savefig('Limit Cycles')
+        # plt.show()
 
         # F-I curve
-        # ax = plt.subplot()
-        # ax.plot(self.iinj, firing_rate)
-        # # ax.plot(max(self.max_I))
-        # ax.set_xlabel("Input Current(A)")
-        # ax.set_ylabel("Firing rate(Hz)")
-        # ax.set_title('f-I Curve')
-        # plt.savefig('f-I Curve')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(self.iinj, firing_rate)
+        # ax.plot(max(self.max_I))
+        ax.set_xlabel("Input Current(A)")
+        ax.set_ylabel("Firing rate(Hz)")
+        ax.set_title('f-I Curve')
+        plt.savefig('f-I Curve')
+        plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
