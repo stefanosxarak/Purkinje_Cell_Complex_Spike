@@ -8,7 +8,7 @@ class Markov():
         self.v = 0.
         self.tmin = 0.
         self.tmax = 35.    
-        self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
+        self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [s]
 
     def error(self,accepted,experiment):
         err = (experiment - accepted)/accepted *100

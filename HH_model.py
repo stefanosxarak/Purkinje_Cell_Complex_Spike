@@ -42,7 +42,7 @@ class HodgkinHuxley():
         self.i_inj = 10.*milli   #TODO: ask about this 10**(-2) conversion is done in cm2?
         
         # self.dt = 0.001
-        self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
+        self.t  = np.linspace(self.tmin, self.tmax, 100) # Total duration of simulation [ms]
 
 
     # α and β are the forward and backwards rate, respectively
@@ -97,21 +97,32 @@ class HodgkinHuxley():
     #         return self.i_inj
     #     return 0.0
 
-    def frequency(self,v):
+    def frequency(self,y):
         firing_rate = []
-        self.iinj = np.linspace(0, self.i_inj, 1000)
-        rec_spikes = 0               # record spike times
+        self.iinj = np.linspace(0, self.i_inj, 100)
+        spikes = 0               # record spike times
         rec_passes = 0
         idx =[]
 
         for i in range(len(self.iinj)):
-            # print("voltage",v[i])
-            # print("threshold",self.vthresh)
-            idx.append(np.sign(v[i] - self.vthresh))
-        for j in range(len(self.iinj)):
-            if idx[j-1] != idx[j]:
-                rec_passes += 1
-            firing_rate.append(rec_passes/2/self.tmax)
+            sol = odeint(self.derivatives, y, self.t, args=(self.iinj[i],))    # Solve ODE
+            
+            # print(self.vthresh)
+            # print(sol[i][0])
+
+            if sol[i][0]*milli >= self.vthresh:
+                    spikes +=1
+            firing_rate.append(spikes/self.tmax)
+
+
+        # for i in range(len(self.iinj)):
+        #     # print("voltage",v[i])
+        #     # print("threshold",self.vthresh)
+        #     idx.append(np.sign(v[i] - self.vthresh))
+        # for j in range(len(self.iinj)):
+        #     if idx[j-1] != idx[j]:
+        #         rec_passes += 1
+        #     firing_rate.append(rec_passes/2/self.tmax)
 
 
 
@@ -121,6 +132,7 @@ class HodgkinHuxley():
         #     firing_rate.append(rec_spikes/self.tmax)
         # print(firing_rate)
         return firing_rate
+        
         # self.max_I = []
         # for i in range(len(self.iinj)):
         #     if self.firing_rate[i] ==0:
@@ -128,9 +140,8 @@ class HodgkinHuxley():
         # print(max(self.max_I))
 
 
-    def derivatives(self,y,t):
+    def derivatives(self,y,t,inj):
         der = np.zeros(4)
-        
         v = y[0]
         n = y[1]
         m = y[2]
@@ -145,11 +156,11 @@ class HodgkinHuxley():
         i_l = gL * (v- self.vl )
 
 
-        der[0] = (self.i_inj - i_na - i_k - i_l) / self.c_m   # dv/dt
+        der[0] = (inj - i_na - i_k - i_l) / self.c_m   # dv/dt
         der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
         der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
         der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
-        
+
         return der
 
     def Main(self):
@@ -161,22 +172,22 @@ class HodgkinHuxley():
         # print(self.m_inf(v))
         # print(self.h_inf(v))
 
-        sol = odeint(self.derivatives, y, t)    # Solve ODE
-        v = sol[:,0]*milli
+        sol = odeint(self.derivatives, y, t, args=(self.i_inj,))    # Solve ODE
+        vp = sol[:,0]*milli
         n = sol[:,1]
         m = sol[:,2]
         h = sol[:,3]
 
-        firing_rate = self.frequency(v)
+        firing_rate = self.frequency(y)
 
-        # ax = plt.subplot()
-        # ax.plot(t, v)
-        # ax.set_xlabel('Time (s)')
-        # ax.set_ylabel('Membrane potential (V)')
-        # ax.set_title('Neuron potential')
-        # plt.grid()
-        # plt.savefig('Neuron Potential')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, vp)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Membrane potential (V)')
+        ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Neuron Potential')
+        plt.show()
 
         # ax = plt.subplot()
         # ax.plot(t, n, 'b', label='Potassium Channel: n')
@@ -192,9 +203,9 @@ class HodgkinHuxley():
 
         # # # Trajectories with limit cycles
         # ax = plt.subplot()
-        # ax.plot(v, n, 'b', label='V - n')
-        # ax.plot(v, m, 'g', label='V - m')
-        # ax.plot(v, h, 'r', label='V - h')
+        # ax.plot(vp, n, 'b', label='V - n')
+        # ax.plot(vp, m, 'g', label='V - m')
+        # ax.plot(vp, h, 'r', label='V - h')
         # ax.set_ylabel('Gating value')
         # ax.set_xlabel('Voltage (V)')
         # ax.set_title('Limit cycles')
