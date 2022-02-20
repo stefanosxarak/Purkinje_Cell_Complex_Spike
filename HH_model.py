@@ -38,18 +38,16 @@ class HodgkinHuxley():
         self.vl   = 10.613   
         self.vthresh = 55.*milli                      
         self.tmin = 0.*milli
-        self.tmax = 35.*milli  
-        self.i_inj = 10.*milli   #TODO: ask about this 10**(-2) conversion is done in cm2?
+        self.tmax = 35.*milli    # Total duration of simulation [ms]
+        self.i_inj = 10.*milli   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
-        # self.dt = 0.001
-        self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [ms]
+        # self.dt = 0.035
+        self.t  = np.linspace(self.tmin, self.tmax, 1000) 
 
 
-    # α and β are the forward and backwards rate, respectively
     # These are the original HH equations for α,β where the constants vary in order to fit adequately the data
     # α(v) = (A+B*v)/C + H*exp((v+D) / F) where A,B,C,D,F,H are constants to be fit to the data
     
-    # NOTE: for cases where 0/0 might occur then L'Hospital's rules must apply
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
         denom = (np.exp((10 - v) / 10) - 1)
@@ -93,23 +91,22 @@ class HodgkinHuxley():
         spikes = 0               # record spike times
 
         for i in range(len(self.iinj)):
-            
             sol = odeint(self.derivatives, y, self.t, args=(self.iinj[i],))    # Solve ODE
-            
 
             for n in range(len(self.iinj)):
                 if sol[n][0]*milli >= self.vthresh and sol[n-1][0]*milli < self.vthresh:
-                        spikes +=1
+                    spikes +=1
             firing_rate.append(spikes/self.tmax)
+
+
+        self.max_I = []
+        for i in range(len(self.iinj)):
+            if firing_rate[i] ==0:
+                self.max_I.append(self.iinj[i])          # threshold input current.
+        print(max(self.max_I))
 
         return firing_rate
         
-        # self.max_I = []
-        # for i in range(len(self.iinj)):
-        #     if self.firing_rate[i] ==0:
-        #         self.max_I.append(self.iinj[i])          # threshold input current.
-        # print(max(self.max_I))
-
 
     def derivatives(self,y,t,inj):
         der = np.zeros(4)
@@ -183,7 +180,7 @@ class HodgkinHuxley():
         # F-I curve
         ax = plt.subplot()
         ax.plot(self.iinj, firing_rate)
-        # ax.plot(max(self.max_I))
+        ax.plot(max(self.max_I))
         ax.set_xlabel("Input Current(A)")
         ax.set_ylabel("Firing rate(Hz)")
         ax.set_title('f-I Curve')
