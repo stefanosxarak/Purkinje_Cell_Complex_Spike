@@ -11,11 +11,13 @@ class Markov():
         self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [s]
 
     def error(self,accepted,experiment):
+        new_exp = 0
         err = (experiment - accepted)/accepted *100
         print("The error percentage is:", err)
         if err!=0 :
             new_exp = experiment/experiment
             print("The error was minimised by dividing with:",experiment)
+        return new_exp
 
     def alpha(self,v):
         return 150* np.exp(v/20*mv)
@@ -56,7 +58,7 @@ class Markov():
         der[11] = ξ*B + f*I[5] - O*n - O*ε  # dO/dt
         der[12] = O * ε - B*ξ   # dB/dt
 
-        self.error(1, (sum(c) + sum(I) + O + B))
+        result = self.error(1, (sum(c) + sum(I) + O + B))
         return der
 
     def Main(self):
@@ -64,7 +66,7 @@ class Markov():
         y = np.array([v, self.alpha(v), self.beta(v), self.ksi(v)], dtype= 'float64')
 
         markov = odeint(self.derivatives, y, self.t, args=(c,I,O,B))    # Solve ODE
-        self.error(0, (sum(markov[0,5]) + sum(markov[5,11]) + markov[-2:]))
+        result = self.error(0, (sum(markov[0,5]) + sum(markov[5,11]) + markov[-2:]))
  
 if __name__ == '__main__':
     runner = Markov()
