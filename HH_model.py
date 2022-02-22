@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from Markov_Model import *
+import time
+start_time = time.time()
 
 # Nelson, M.E. (2004) Electrophysiological Models In: Databasing the Brain: From Data to Knowledge. (S. Koslow and S. Subramaniam, eds.) Wiley, New York.
 
@@ -190,3 +192,4 @@ class HodgkinHuxley():
 if __name__ == '__main__':
     runner = HodgkinHuxley()
     runner.Main()
+    print("--- %s seconds ---" % (time.time() - start_time))
