@@ -89,22 +89,22 @@ class HodgkinHuxley():
 
     def frequency(self,y):
         firing_rate = []
-        self.iinj = np.linspace(0, self.i_inj, 1000)
+        self.var_inj = np.linspace(0, self.i_inj, 1000)
         spikes = 0               # record spike times
 
-        for i in range(len(self.iinj)):
-            sol = odeint(self.derivatives, y, self.t, args=(self.iinj[i],))    # Solve ODE
+        for i in range(len(self.var_inj)):
+            sol = odeint(self.derivatives, y, self.t, args=(self.var_inj[i],))    # Solve ODE
 
-            for n in range(len(self.iinj)):
+            for n in range(len(self.var_inj)):
                 if sol[n][0]*milli >= self.vthresh and sol[n-1][0]*milli < self.vthresh:
                     spikes +=1
             firing_rate.append(spikes/self.tmax)
 
 
         self.max_I = []
-        for i in range(len(self.iinj)):
+        for i in range(len(self.var_inj)):
             if firing_rate[i] ==0:
-                self.max_I.append(self.iinj[i])          # threshold input current.
+                self.max_I.append(self.var_inj[i])          # threshold input current.
         print(max(self.max_I))
 
         return firing_rate
@@ -181,8 +181,8 @@ class HodgkinHuxley():
 
         # F-I curve
         ax = plt.subplot()
-        ax.plot(self.iinj, firing_rate)
-        ax.plot(max(self.max_I))
+        ax.plot(self.var_inj, firing_rate)
+        ax.plot(max(self.max_I),0,c='r',marker='o')
         ax.set_xlabel("Input Current(A)")
         ax.set_ylabel("Firing rate(Hz)")
         ax.set_title('f-I Curve')
