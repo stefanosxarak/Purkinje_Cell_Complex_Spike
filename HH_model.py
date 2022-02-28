@@ -6,8 +6,6 @@ from Markov_Model import *
 import time
 start_time = time.time()
 
-# Nelson, M.E. (2004) Electrophysiological Models In: Databasing the Brain: From Data to Knowledge. (S. Koslow and S. Subramaniam, eds.) Wiley, New York.
-
 class HodgkinHuxley():
     # Hodgkin - Huxley model
 
@@ -25,8 +23,7 @@ class HodgkinHuxley():
         # self.vk   = float(input("Enter the value of vK: "))                                    # Sodium potential
         # self.vl   = float(input("Enter the value of vl: "))                                    # Leak potential
         # self.vthresh   = float(input("Enter the value of voltage threshold: "))                # Voltage threshold for spikes
-        # self.tmin = float(input("Enter the start time : "))
-        # self.tmax = float(input("Enter the end time: "))
+        # self.tmax = float(input("Enter the total duration of simulation: "))
         # self.i_inj   = float(input("Enter the value of Input current i_inj: "))                # Input current
 
                 
@@ -43,13 +40,8 @@ class HodgkinHuxley():
         self.tmax = 35.*milli    # Total duration of simulation [ms]
         self.i_inj = 10.*milli   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
-        # self.dt = 0.035
         self.t  = np.linspace(self.tmin, self.tmax, 1000) 
 
-
-    # These are the original HH equations for α,β where the constants vary in order to fit adequately the data
-    # α(v) = (A+B*v)/C + H*exp((v+D) / F) where A,B,C,D,F,H are constants to be fit to the data
-    
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
         denom = (np.exp((10 - v) / 10) - 1)
@@ -89,19 +81,19 @@ class HodgkinHuxley():
 
     def frequency(self,y):
         firing_rate = []
-        self.var_inj = np.linspace(0, self.i_inj, 1000)
-        spikes = 0               # record spike times
+        self.max_I = []
+        self.var_inj = np.linspace(0, self.i_inj, 100)
+        spikes = 0               
 
         for i in range(len(self.var_inj)):
-            sol = odeint(self.derivatives, y, self.t, args=(self.var_inj[i],))    # Solve ODE
+            sol = odeint(self.derivatives, y, self.t, args=(self.var_inj[i],))
 
-            for n in range(len(self.var_inj)):
+            for n in range(len(self.t)):
                 if sol[n][0]*milli >= self.vthresh and sol[n-1][0]*milli < self.vthresh:
-                    spikes +=1
+                    spikes += 1
             firing_rate.append(spikes/self.tmax)
 
 
-        self.max_I = []
         for i in range(len(self.var_inj)):
             if firing_rate[i] ==0:
                 self.max_I.append(self.var_inj[i])          # threshold input current.
@@ -117,16 +109,16 @@ class HodgkinHuxley():
         m = y[2]
         h = y[3]
 
-        gNa = self.g_na * np.power(m, 3.0) * h
-        gK = self.g_k * np.power(n, 4.0)
+        gNa = self.g_na * m**3.0 * h
+        gK = self.g_k * n**4.0
         gL = self.g_l
 
-        i_na = gNa * (v- self.vna )
-        i_k = gK * (v- self.vk )
-        i_l = gL * (v- self.vl )
+        i_na = gNa * (v - self.vna )
+        i_k = gK * (v - self.vk )
+        i_l = gL * (v - self.vl )
 
 
-        der[0] = (inj - i_na - i_k - i_l) / self.c_m   # dv/dt
+        der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
         der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
         der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
         der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
@@ -139,7 +131,7 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         sol = odeint(self.derivatives, y, t, args=(self.i_inj,))    # Solve ODE
-        vp = sol[:,0]*milli
+        vp = sol[:,0]*milli     #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = sol[:,1]
         m = sol[:,2]
         h = sol[:,3]
@@ -182,10 +174,11 @@ class HodgkinHuxley():
         # F-I curve
         ax = plt.subplot()
         ax.plot(self.var_inj, firing_rate)
-        ax.plot(max(self.max_I),0,c='r',marker='o')
+        ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
         ax.set_xlabel("Input Current(A)")
         ax.set_ylabel("Firing rate(Hz)")
         ax.set_title('f-I Curve')
+        plt.legend()
         plt.savefig('f-I Curve')
         plt.show()
 
