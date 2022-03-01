@@ -130,7 +130,7 @@ class HodgkinHuxley():
         t = self.t
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
-        sol = odeint(self.derivatives, y, t, args=(self.i_inj,))    # Solve ODE
+        sol = odeint(self.derivatives, y, t, args=(self.i_inj,))    # Need to check the arguments here
         vp = sol[:,0]*milli     #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = sol[:,1]
         m = sol[:,2]
