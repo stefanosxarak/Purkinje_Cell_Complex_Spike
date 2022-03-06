@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from Markov_Model import *
 import time
+
 start_time = time.time()
 
 class HodgkinHuxley():
@@ -18,7 +19,7 @@ class HodgkinHuxley():
         # self.g_k  = float(input("Enter the value of gK: "))                                    # Average potassium channel conductance per unit area
         # self.g_l  = float(input("Enter the value of gl: "))                                    # Average leak channel conductance per unit area
         # self.C_m  = float(input("Enter the value of membrane capacitance c_m: "))              # Membrane capacitance per unit area
-        # self.v    = float(input("Enter the value of the membrane potential v: "))              # vis the membrane potential
+        # self.v    = float(input("Enter the value of the membrane potential v: "))              # v is the membrane potential
         # self.vna  = float(input("Enter the value of vNa: "))                                   # Potassium potential
         # self.vk   = float(input("Enter the value of vK: "))                                    # Sodium potential
         # self.vl   = float(input("Enter the value of vl: "))                                    # Leak potential
@@ -109,13 +110,13 @@ class HodgkinHuxley():
         m = y[2]
         h = y[3]
 
-        gNa = self.g_na * m**3.0 * h
-        gK = self.g_k * n**4.0
-        gL = self.g_l
+        GNa = self.g_na * m**3.0 * h
+        GK = self.g_k * n**4.0
+        GL = self.g_l
 
-        i_na = gNa * (v - self.vna )
-        i_k = gK * (v - self.vk )
-        i_l = gL * (v - self.vl )
+        i_na = GNa * (v - self.vna )
+        i_k = GK * (v - self.vk )
+        i_l = GL * (v - self.vl )
 
 
         der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt

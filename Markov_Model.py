@@ -2,11 +2,12 @@ from Units import *
 import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
-# import vorpy as vp      # vorpy.symplectic_integration
 import time
-start_time = time.time()
-# 13 equations drop 1 replace with np.ones
+# import vorpy as vp      # vorpy.symplectic_integration
 
+start_time = time.time()
+
+# solve a 13 equation system drop 1 replace with np.ones for more accurate initialisation
 class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
     def __init__(self):
@@ -25,38 +26,37 @@ class Markov():
         self.o = 0
         self.b = 0
 
-        self.γ = 150.         # m*s**(-1)
-        self.δ = 40.          # m*s**(-1)
+        self.γ = 150.        # m*s**(-1)
+        self.δ = 40.         # m*s**(-1)
         self.ε = 1.75        # m*s**(-1)
         self.d = 0.005       # m*s**(-1)
         self.u = 0.5         # m*s**(-1)
         self.n = 0.75        # m*s**(-1)
         self.f = 0.005       # m*s**(-1)
-        self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)
+        self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)   # m*s**(-1)
 
-        self.tmin = 0.
         self.tmax = 35.    
-        self.t  = np.linspace(self.tmin, self.tmax, 1000) # Total duration of simulation [s]
+        self.t  = np.linspace(0, self.tmax, 1000) # Total duration of simulation [s]
 
     def error(self,accepted,experiment):
         new_exp = 0
-        err = np.abs(100 -((experiment - accepted)/(accepted) *100))
-        print("The error percentage is:", err)
-        new_exp = experiment/experiment
-        print("The final value is: ",new_exp)
         if accepted ==0 :
             err = np.abs(100 -(experiment - accepted)/((accepted+1)) *100)
             print("The error percentage is:", err)
             new_exp = experiment/experiment
             print("The final value is: ",new_exp)
-        return new_exp
+        else:
+            err = np.abs(100 -((experiment - accepted)/(accepted) *100))
+            print("The error percentage is:", err)
+            new_exp = experiment/experiment
+            print("The final value is: ",new_exp)
 
     def alpha(self,v):
-        return 150* np.exp(v/20)
+        return 150.* np.exp(v/20.)
     def beta(self,v):
-        return 3 * np.exp(-v/20) 
+        return 3. * np.exp(-v/20.) 
     def ksi(self,v):
-        return 0.03 * np.exp(-v/25)
+        return 0.03 * np.exp(-v/25.)
 
     def derivatives(self,y,t,v,α,β,ξ,γ,δ,ε,d,u,n,f,a):
         c0 = y[0]
@@ -70,8 +70,8 @@ class Markov():
         I3 = y[8]
         I4 = y[9]
         I5 = y[10]
-        o = y[11]
-        b = y[12] 
+        o  = y[11]
+        b  = y[12] 
 
         aav=α*a
         bav=α/a
@@ -94,27 +94,25 @@ class Markov():
         der[11] = γ* c4+ ξ*b+ f*I5 - (δ + n + ε)*o                                   # do/dt
         der[12] = o * ε - b*ξ                                                        # db/dt
 
-        # result = self.error(1, (c0+c1+c2+c3+c4 +I0+I1+I2+I3+I4+I5+ o+ b))
-        # print(sum(c) + sum(I) + o + b,o)  # equals 1
+        # self.error(1, (c0+c1+c2+c3+c4 +I0+I1+I2+I3+I4+I5+ o+ b))
 
         return der
 
     def Main(self):
         v = self.v
-        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b], dtype= 'float64')
+        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b], dtype= 'float6\4')
 
         markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))    #(1000,13)
 
         m = np.sum(markov,axis=1)
-        # print(m[:1000])
         ax = plt.subplot()
         ax.plot(self.t, m)
         ax.set_xlabel('Time (ms)')
         plt.grid()
-        plt.show()
+        # plt.show()
 
         # for j in range(len(self.t)):
-        # result = self.error(0, (m[999]))
+        #     self.error(0, (m[j]))
 
 if __name__ == '__main__':
     runner = Markov()
