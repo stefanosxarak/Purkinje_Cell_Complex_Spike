@@ -39,17 +39,13 @@ class Markov():
         self.t  = np.linspace(0, self.tmax, 1000) # Total duration of simulation [s]
 
     def error(self,accepted,experiment):
-        new_exp = 0
-        if accepted ==0 :
+        if accepted == 0 :
             err = np.abs(100 -(experiment - accepted)/((accepted+1)) *100)
-            print("The error percentage is:", err)
-            new_exp = experiment/experiment
-            print("The final value is: ",new_exp)
+            print("The error percentage is:", err,"%")
         else:
-            err = np.abs(100 -((experiment - accepted)/(accepted) *100))
-            print("The error percentage is:", err)
-            new_exp = experiment/experiment
-            print("The final value is: ",new_exp)
+            err = np.abs((experiment - accepted)/(accepted) *100)
+            print("The error percentage is:", err,"%")
+
 
     def alpha(self,v):
         return 150.* np.exp(v/20.)
@@ -94,25 +90,24 @@ class Markov():
         der[11] = γ* c4+ ξ*b+ f*I5 - (δ + n + ε)*o                                   # do/dt
         der[12] = o * ε - b*ξ                                                        # db/dt
 
-        # self.error(1, (c0+c1+c2+c3+c4 +I0+I1+I2+I3+I4+I5+ o+ b))
-
+        # self.error(0, (c0+c1+c2+c3+c4 +I0+I1+I2+I3+I4+I5+ o+ b))
         return der
 
     def Main(self):
         v = self.v
-        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b], dtype= 'float6\4')
+        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b], dtype= 'float64')
 
-        markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))    #(1000,13)
+        markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a)) 
 
         m = np.sum(markov,axis=1)
         ax = plt.subplot()
         ax.plot(self.t, m)
         ax.set_xlabel('Time (ms)')
         plt.grid()
-        # plt.show()
+        plt.show()
 
-        # for j in range(len(self.t)):
-        #     self.error(0, (m[j]))
+        for j in range(len(self.t)):
+            self.error(accepted= 1, experiment= m[j])
 
 if __name__ == '__main__':
     runner = Markov()
