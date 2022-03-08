@@ -37,11 +37,10 @@ class HodgkinHuxley():
         self.vk   = -12.                        
         self.vl   = 10.613   
         self.vthresh = 55.*milli                      
-        self.tmin = 0.*milli
-        self.tmax = 35.*milli    # Total duration of simulation [ms]
+        self.tmax = 35.*milli   
         self.i_inj = 10.*milli   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
-        self.t  = np.linspace(self.tmin, self.tmax, 1000) 
+        self.t  = np.linspace(0, self.tmax, 1000) 
 
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
@@ -138,6 +137,8 @@ class HodgkinHuxley():
         h = sol[:,3]
 
         firing_rate = self.frequency(y)
+
+        Markov.error(self,105.40*milli,max(vp))   #record and compare simulation peak height with actual paper
 
         ax = plt.subplot()
         ax.plot(t, vp)
