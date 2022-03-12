@@ -1,7 +1,7 @@
 from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint
+from scipy.integrate import odeint,solve_ivp
 from Markov_Model import *
 import time
 
@@ -82,14 +82,15 @@ class HodgkinHuxley():
     def frequency(self,y):
         firing_rate = []
         self.max_I = []
-        self.var_inj = np.linspace(0, self.i_inj, 100)
+        self.var_inj = np.linspace(0, self.i_inj, 6)
         spikes = 0               
 
         for i in range(len(self.var_inj)):
-            sol = odeint(self.derivatives, y, self.t, args=(self.var_inj[i],))
+            spikes = 0
+            result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
 
             for n in range(len(self.t)):
-                if sol[n][0]*milli >= self.vthresh and sol[n-1][0]*milli < self.vthresh:
+                if result.y[0,n]*milli >= self.vthresh and result.y[0,n-1]*milli < self.vthresh:
                     spikes += 1
             firing_rate.append(spikes/self.tmax)
 
@@ -102,7 +103,7 @@ class HodgkinHuxley():
         return firing_rate
         
 
-    def derivatives(self,y,t,inj):
+    def derivatives(self,t,y,inj):
         der = np.zeros(4)
         v = y[0]
         n = y[1]
@@ -130,48 +131,61 @@ class HodgkinHuxley():
         t = self.t
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
-        sol = odeint(self.derivatives, y, t, args=(self.i_inj,))    # Need to check the arguments here
-        vp = sol[:,0]*milli     #TODO: if conversion is done properly at the beggining then *milli is not needed
-        n = sol[:,1]
-        m = sol[:,2]
-        h = sol[:,3]
+        result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
+
+        vp = result.y[0,:]*milli    #TODO: if conversion is done properly at the beggining then *milli is not needed
+        n = result.y[1,:]
+        m = result.y[2,:]
+        h = result.y[3,:]
 
         firing_rate = self.frequency(y)
 
         Markov.error(self,105.40*milli,max(vp))   #record and compare simulation peak height with actual paper
 
-        ax = plt.subplot()
-        ax.plot(t, vp)
-        ax.set_xlabel('Time (s)')
-        ax.set_ylabel('Membrane potential (V)')
-        ax.set_title('Neuron potential')
-        plt.grid()
-        plt.savefig('Neuron Potential')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, vp)
+        # ax.set_xlabel('Time (s)')
+        # ax.set_ylabel('Membrane potential (V)')
+        # ax.set_title('Neuron potential')
+        # plt.grid()
+        # plt.savefig('Neuron Potential')
+        # plt.show()
 
-        ax = plt.subplot()
-        ax.plot(t, n, 'b', label='Potassium Channel: n')
-        ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Time (s)')
-        ax.set_title('Potassium and Sodium channels')
-        plt.legend()
-        plt.savefig('Potassium and Sodium channels (time)')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, n, 'b', label='Potassium Channel: n')
+        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Time (s)')
+        # ax.set_title('Potassium and Sodium channels')
+        # plt.legend()
+        # plt.savefig('Potassium and Sodium channels (time)')
+        # plt.show()
+
+
+        # ax = plt.subplot()
+        # ax.plot(vp, n, 'b', label='V - n')
+        # ax.plot(vp, m, 'g', label='V - m')
+        # ax.plot(vp, h, 'r', label='V - h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Voltage (V)')
+        # ax.set_title('Limit cycles')
+        # plt.legend()
+        # plt.savefig('Limit Cycles')
+        # plt.show()
 
 
         # Trajectories with limit cycles
-        ax = plt.subplot()
-        ax.plot(vp, n, 'b', label='V - n')
-        ax.plot(vp, m, 'g', label='V - m')
-        ax.plot(vp, h, 'r', label='V - h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Voltage (V)')
-        ax.set_title('Limit cycles')
-        plt.legend()
-        plt.savefig('Limit Cycles')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(vp, n, 'b', label='V - n')
+        # ax.plot(vp, m, 'g', label='V - m')
+        # ax.plot(vp, h, 'r', label='V - h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Voltage (V)')
+        # ax.set_title('Limit cycles')
+        # plt.legend()
+        # plt.savefig('Limit Cycles')
+        # plt.show()
 
         # F-I curve
         ax = plt.subplot()
