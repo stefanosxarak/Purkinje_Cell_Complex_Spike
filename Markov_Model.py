@@ -1,6 +1,6 @@
 from Units import *
 import numpy as np
-from scipy.integrate import odeint
+from scipy.integrate import odeint,solve_ivp
 import matplotlib.pyplot as plt
 import time
 # import vorpy as vp      # vorpy.symplectic_integration
@@ -12,19 +12,19 @@ class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
     def __init__(self):
         self.v = -50.
-        self.c0 = 1
-        self.c1 = 0
-        self.c2 = 0
-        self.c3 = 0
-        self.c4 = 0
-        self.I0 = 0
-        self.I1 = 0
-        self.I2 = 0
-        self.I3 = 0
-        self.I4 = 0
-        self.I5 = 0
-        self.o = 0
-        self.b = 0
+        self.c0 = 1.
+        self.c1 = 0.
+        self.c2 = 0.
+        self.c3 = 0.
+        self.c4 = 0.
+        self.I0 = 0.
+        self.I1 = 0.
+        self.I2 = 0.
+        self.I3 = 0.
+        self.I4 = 0.
+        self.I5 = 0.
+        self.o = 0.
+        self.b = 0.
 
         self.γ = 150.        # m*s**(-1)
         self.δ = 40.         # m*s**(-1)
@@ -54,7 +54,7 @@ class Markov():
     def ksi(self,v):
         return 0.03 * np.exp(-v/25.)
 
-    def derivatives(self,y,t,v,α,β,ξ,γ,δ,ε,d,u,n,f,a):
+    def derivatives(self,t,y ,v,α,β,ξ,γ,δ,ε,d,u,n,f,a):
         c0 = y[0]
         c1 = y[1]
         c2 = y[2]
@@ -90,24 +90,26 @@ class Markov():
         der[11] = γ* c4+ ξ*b+ f*I5 - (δ + n + ε)*o                                   # do/dt
         der[12] = o * ε - b*ξ                                                        # db/dt
 
-        # self.error(0, (c0+c1+c2+c3+c4 +I0+I1+I2+I3+I4+I5+ o+ b))
         return der
 
     def Main(self):
         v = self.v
-        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b], dtype= 'float64')
+        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
-        markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a)) 
+        # markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+ 
+        markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, method='RK45', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        # print(markov)
 
-        m = np.sum(markov,axis=1)
+        m = np.sum(markov.y,axis=0)
         ax = plt.subplot()
         ax.plot(self.t, m)
         ax.set_xlabel('Time (ms)')
         plt.grid()
         plt.show()
 
-        for j in range(len(self.t)):
-            self.error(accepted= 1, experiment= m[j])
+        # for j in range(len(self.t)):
+        #     self.error(accepted= 1, experiment= m[j])
 
 if __name__ == '__main__':
     runner = Markov()
