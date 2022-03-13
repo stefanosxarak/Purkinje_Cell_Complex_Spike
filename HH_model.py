@@ -132,71 +132,61 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
-
+        print(result)
+        
         vp = result.y[0,:]*milli    #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = result.y[1,:]
         m = result.y[2,:]
         h = result.y[3,:]
 
-        firing_rate = self.frequency(y)
+        # firing_rate = self.frequency(y)
 
         Markov.error(self,105.40*milli,max(vp))   #record and compare simulation peak height with actual paper
 
-        # ax = plt.subplot()
-        # ax.plot(t, vp)
-        # ax.set_xlabel('Time (s)')
-        # ax.set_ylabel('Membrane potential (V)')
-        # ax.set_title('Neuron potential')
-        # plt.grid()
-        # plt.savefig('Neuron Potential')
-        # plt.show()
-
-        # ax = plt.subplot()
-        # ax.plot(t, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (s)')
-        # ax.set_title('Potassium and Sodium channels')
-        # plt.legend()
-        # plt.savefig('Potassium and Sodium channels (time)')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, vp)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Membrane potential (V)')
+        ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Neuron Potential')
+        plt.show()
 
 
-        # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='V - n')
-        # ax.plot(vp, m, 'g', label='V - m')
-        # ax.plot(vp, h, 'r', label='V - h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (V)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
-        # plt.savefig('Limit Cycles')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, n, 'b', label='Potassium Channel: n')
+        ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Time (s)')
+        ax.set_title('Potassium and Sodium channels')
+        plt.legend()
+        plt.savefig('Ion channel gating variables with respect to time')
+        plt.show()
 
 
         # Trajectories with limit cycles
-        # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='V - n')
-        # ax.plot(vp, m, 'g', label='V - m')
-        # ax.plot(vp, h, 'r', label='V - h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (V)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
-        # plt.savefig('Limit Cycles')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(vp, n, 'b', label='V - n')
+        ax.plot(vp, m, 'g', label='V - m')
+        ax.plot(vp, h, 'r', label='V - h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Voltage (V)')
+        ax.set_title('Limit cycles')
+        plt.legend()
+        plt.savefig('Limit Cycles')
+        plt.show()
 
         # F-I curve
-        ax = plt.subplot()
-        ax.plot(self.var_inj, firing_rate)
-        ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
-        ax.set_xlabel("Input Current(A)")
-        ax.set_ylabel("Firing rate(Hz)")
-        ax.set_title('f-I Curve')
-        plt.legend()
-        plt.savefig('f-I Curve')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(self.var_inj, firing_rate)
+        # ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
+        # ax.set_xlabel("Input Current(A)")
+        # ax.set_ylabel("Firing rate(Hz)")
+        # ax.set_title('f-I Curve')
+        # plt.legend()
+        # plt.savefig('f-I Curve')
+        # plt.show()
 
 if __name__ == '__main__':
     runner = HodgkinHuxley()
