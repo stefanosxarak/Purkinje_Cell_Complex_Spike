@@ -1,9 +1,8 @@
 from Units import *
 import numpy as np
-from scipy.integrate import odeint,solve_ivp
+from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import time
-# import vorpy as vp      # vorpy.symplectic_integration
 
 start_time = time.time()
 
@@ -11,7 +10,7 @@ start_time = time.time()
 class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
     def __init__(self):
-        self.v = -50.
+        self.v = -70.
         self.c0 = 1.
         self.c1 = 0.
         self.c2 = 0.
@@ -35,12 +34,13 @@ class Markov():
         self.f = 0.005       # m*s**(-1)
         self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)   # m*s**(-1)
 
-        self.tmax = 35.    
-        self.t  = np.linspace(0, self.tmax, 1000) # Total duration of simulation [s]
+        self.tmax = 35    
+        self.t  = np.linspace(0, self.tmax, 100)
+
 
     def error(self,accepted,experiment):
         if accepted == 0 :
-            err = np.abs(100 -(experiment - accepted)/((accepted+1)) *100)
+            err = np.abs(100 -(experiment - accepted)/(accepted+1) *100)
             print("The error percentage is:", err,"%")
         else:
             err = np.abs((experiment - accepted)/(accepted) *100)
@@ -96,19 +96,23 @@ class Markov():
         v = self.v
         y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
-        # markov = odeint(self.derivatives, y, self.t, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        for i in range(0,self.tmax):
+            markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+            m = np.sum(markov.y,axis=0)
+            self.error(accepted= 1, experiment= m[i])
+
  
-        markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, method='RK45', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
-        # print(markov)
+        # markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        # print(np.shape(markov.y))
 
-        m = np.sum(markov.y,axis=0)
-        ax = plt.subplot()
-        ax.plot(self.t, m)
-        ax.set_xlabel('Time (ms)')
-        plt.grid()
-        plt.show()
+        # m = np.sum(markov.y,axis=0)
+        # ax = plt.subplot()
+        # ax.plot(markov.t, m)
+        # ax.set_xlabel('Time (ms)')
+        # plt.grid()
+        # plt.show()
 
-        # for j in range(len(self.t)):
+        # for j in range(len(markov.t)):
         #     self.error(accepted= 1, experiment= m[j])
 
 if __name__ == '__main__':

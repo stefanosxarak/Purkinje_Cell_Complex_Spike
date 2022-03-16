@@ -1,7 +1,7 @@
 from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint,solve_ivp
+from scipy.integrate import solve_ivp
 from Markov_Model import *
 import time
 
