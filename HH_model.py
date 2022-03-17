@@ -132,7 +132,6 @@ class HodgkinHuxley():
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
-        print(result)
         
         vp = result.y[0,:]*milli    #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = result.y[1,:]
@@ -141,7 +140,7 @@ class HodgkinHuxley():
 
         # firing_rate = self.frequency(y)
 
-        Markov.error(self,105.40*milli,max(vp))   #record and compare simulation peak height with actual paper
+        Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
         ax = plt.subplot()
         ax.plot(t, vp)

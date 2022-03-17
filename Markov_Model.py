@@ -10,7 +10,8 @@ start_time = time.time()
 class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
     def __init__(self):
-        self.v = -70.
+        self.v = -50.
+
         self.c0 = 1.
         self.c1 = 0.
         self.c2 = 0.
@@ -45,7 +46,6 @@ class Markov():
         else:
             err = np.abs((experiment - accepted)/(accepted) *100)
             print("The error percentage is:", err,"%")
-
 
     def alpha(self,v):
         return 150.* np.exp(v/20.)
@@ -96,24 +96,25 @@ class Markov():
         v = self.v
         y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
-        for i in range(0,self.tmax):
-            markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
-            m = np.sum(markov.y,axis=0)
-            self.error(accepted= 1, experiment= m[i])
+        #   Sum needs to be visualised
+        # for i in range(0,self.tmax):
+        #     markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        #     m = np.sum(markov.y,axis=0)
+        #     self.error(accepted= 1, experiment= m[len(markov.y)-1])
 
  
-        # markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
-        # print(np.shape(markov.y))
+        markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        print(np.shape(markov.y))
 
-        # m = np.sum(markov.y,axis=0)
-        # ax = plt.subplot()
-        # ax.plot(markov.t, m)
-        # ax.set_xlabel('Time (ms)')
-        # plt.grid()
-        # plt.show()
+        m = np.sum(markov.y,axis=0)
+        ax = plt.subplot()
+        ax.plot(markov.t, m)
+        ax.set_xlabel('Time (ms)')
+        plt.grid()
+        plt.show()
 
-        # for j in range(len(markov.t)):
-        #     self.error(accepted= 1, experiment= m[j])
+        for j in range(len(markov.t)):
+            self.error(accepted= 1, experiment= m[j])
 
 if __name__ == '__main__':
     runner = Markov()
