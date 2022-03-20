@@ -2,7 +2,7 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-from Markov_Model import *
+# from Markov_Model import *
 import time
 
 start_time = time.time()
@@ -28,50 +28,52 @@ class HodgkinHuxley():
         # self.i_inj   = float(input("Enter the value of Input current i_inj: "))                # Input current
 
                 
-        self.g_na = 120.*milli               
-        self.g_k  = 36.*milli                       
-        self.g_l  = 0.3*milli                   
-        self.c_m  = 1.*mu
+        self.g_na = 120.               
+        self.g_k  = 36.                      
+        self.g_l  = 0.3                   
+        self.c_m  = 1.
         self.v   = 0.
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613   
         self.vthresh = 55.*milli                      
-        self.tmax = 35.*milli   
-        self.i_inj = 10.*milli   # TODO: ask about this 10**(-2) conversion is done in cm2?
+        self.tmax = 35.   
+        self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
-        self.t  = np.linspace(0, self.tmax, 1000) 
+        self.t  = np.linspace(0, self.tmax, 100)
+        # self.markovian = Markov() 
 
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
         denom = (np.exp((10 - v) / 10) - 1)
 
         if nom == 0 and denom == 0 :
-            return 0.1*kHz
+            return 0.1
         else:
-            return (nom / denom)*kHz
+            return (nom / denom)
     def beta_n(self,v):
-        return (0.125 * np.exp(- v/ 80.))*kHz
+        return (0.125 * np.exp(- v/ 80.))
 
     def alpha_m(self,v):
         nom = 0.1  * (25. - v)
         denom = (np.exp((25. - v) / 10.) - 1.)
 
         if nom == 0 and denom == 0 :
-            return (1.5/(-1 + np.exp(3./2.)))*kHz
+            return (1.5/(-1 + np.exp(3./2.)))
         else:
-            return (nom / denom)*kHz
+            return (nom / denom)
     def beta_m(self,v):
-        return (4. * np.exp(- v/ 18.))*kHz
+        return (4. * np.exp(- v/ 18.))
 
     def alpha_h(self,v):
-        return (0.07 * np.exp(- v/ 20.))*kHz
+        return (0.07 * np.exp(- v/ 20.))
     def beta_h(self,v):
-        return (1. / (np.exp((30. -v) / 10.) + 1.))*kHz
+        return (1. / (np.exp((30. -v) / 10.) + 1.))
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
 
+    # To be replaced by the markovian scheme
     def m_inf(self,v):
         return self.alpha_m(v) / (self.alpha_m(v) + self.beta_m(v))
 
@@ -110,7 +112,7 @@ class HodgkinHuxley():
         m = y[2]
         h = y[3]
 
-        GNa = self.g_na * m**3.0 * h
+        GNa = self.g_na * m**3.0 * h    #This will need to change when we merge the files
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -126,55 +128,60 @@ class HodgkinHuxley():
 
         return der
 
-    def Main(self):
+    def lala(self):
         v = self.v
         t = self.t
+
+        # m = self.markovian.scheme(v)
+        # print(np.shape(m))
+
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
         
-        vp = result.y[0,:]*milli    #TODO: if conversion is done properly at the beggining then *milli is not needed
+        vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = result.y[1,:]
         m = result.y[2,:]
         h = result.y[3,:]
+        return vp
 
         # firing_rate = self.frequency(y)
 
-        Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
+        # Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
-        ax = plt.subplot()
-        ax.plot(t, vp)
-        ax.set_xlabel('Time (s)')
-        ax.set_ylabel('Membrane potential (V)')
-        ax.set_title('Neuron potential')
-        plt.grid()
-        plt.savefig('Neuron Potential')
-        plt.show()
-
-
-        ax = plt.subplot()
-        ax.plot(t, n, 'b', label='Potassium Channel: n')
-        ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Time (s)')
-        ax.set_title('Potassium and Sodium channels')
-        plt.legend()
-        plt.savefig('Ion channel gating variables with respect to time')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, vp)
+        # ax.set_xlabel('Time (s)')
+        # ax.set_ylabel('Membrane potential (V)')
+        # ax.set_title('Neuron potential')
+        # plt.grid()
+        # plt.savefig('Neuron Potential')
+        # plt.show()
 
 
-        # Trajectories with limit cycles
-        ax = plt.subplot()
-        ax.plot(vp, n, 'b', label='V - n')
-        ax.plot(vp, m, 'g', label='V - m')
-        ax.plot(vp, h, 'r', label='V - h')
-        ax.set_ylabel('Gating value')
-        ax.set_xlabel('Voltage (V)')
-        ax.set_title('Limit cycles')
-        plt.legend()
-        plt.savefig('Limit Cycles')
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(t, n, 'b', label='Potassium Channel: n')
+        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Time (s)')
+        # ax.set_title('Potassium and Sodium channels')
+        # plt.legend()
+        # plt.savefig('Ion channel gating variables with respect to time')
+        # plt.show()
+
+
+        # # Trajectories with limit cycles
+        # ax = plt.subplot()
+        # ax.plot(vp, n, 'b', label='V - n')
+        # ax.plot(vp, m, 'g', label='V - m')
+        # ax.plot(vp, h, 'r', label='V - h')
+        # ax.set_ylabel('Gating value')
+        # ax.set_xlabel('Voltage (V)')
+        # ax.set_title('Limit cycles')
+        # plt.legend()
+        # plt.savefig('Limit Cycles')
+        # plt.show()
 
         # F-I curve
         # ax = plt.subplot()
@@ -187,7 +194,7 @@ class HodgkinHuxley():
         # plt.savefig('f-I Curve')
         # plt.show()
 
-if __name__ == '__main__':
-    runner = HodgkinHuxley()
-    runner.Main()
-    print("--- %s seconds ---" % (time.time() - start_time))
+# if __name__ == '__main__':
+#     runner = HodgkinHuxley()
+#     runner.Main()
+#     print("--- %s seconds ---" % (time.time() - start_time))

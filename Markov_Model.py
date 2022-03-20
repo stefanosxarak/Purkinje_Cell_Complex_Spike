@@ -3,8 +3,8 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import time
-from sklearn.metrics import accuracy_score
-from sklearn import preprocessing
+from HH_model import *
+
 
 
 start_time = time.time()
@@ -13,7 +13,7 @@ start_time = time.time()
 class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
     def __init__(self):
-        self.v = -70.
+        self.v = -50.
 
         self.c0 = 1.
         self.c1 = 0.
@@ -37,9 +37,11 @@ class Markov():
         self.n = 0.75        # m*s**(-1)
         self.f = 0.005       # m*s**(-1)
         self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)   # m*s**(-1)
+        self.hh = HodgkinHuxley() 
 
         self.tmax = 35 
-        self.t  = np.linspace(0, self.tmax, 100)
+        # self.t  = np.linspace(0, self.tmax, 100)
+        # self.scheme(self.v)
 
 
     def error(self,accepted,experiment):
@@ -96,31 +98,34 @@ class Markov():
         return der
 
     def Main(self):
-        v = self.v
-        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
-        bigy = np.array([])
-        bigt = np.array([])
+        v = self.hh.lala()
+        for i in range(0,len(v)):
+            y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
+            self.bigy = np.array([])
+            self.bigt = np.array([])
 
-        for i in range(0,self.tmax):
-            markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF',t_eval=np.linspace(i, i+1, 100), args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+            print(v[i])
 
-            # markov.y has shape (13,100) and y has shape (13,)
-            # np.shape(markov.y[-1,:]) # (100,)
+            for j in range(0,self.tmax):
+                # print(v[i])
+                markov = solve_ivp(self.derivatives, t_span=(j,j+1), y0=y, method='BDF',t_eval=np.linspace(j, j+1, 100), args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
 
-            bigy = np.concatenate((bigy,markov.y[-1,:]))    
-            bigt = np.concatenate((bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
+                # markov.y has shape (13,100) and y has shape (13,)
+                # np.shape(markov.y[-1,:]) # (100,)
 
-            # Normalising the y 
-            y = markov.y[:,-1]
-            y = y/np.sum(y)
+                self.bigy = np.concatenate((self.bigy,markov.y[-1,:]))    
+                self.bigt = np.concatenate((self.bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
 
-            
-        ax = plt.subplot()
-        ax.plot(bigt, bigy)
-        ax.set_xlabel('Time (ms)')
-        plt.grid()
-        plt.show()
+                # Normalising the y 
+                y = markov.y[:,-1]
+                y = y/np.sum(y)
 
+            # print(self.bigy)
+            ax = plt.subplot()
+            ax.plot(self.bigt, self.bigy)
+            ax.set_xlabel('Time (ms)')
+            plt.grid()
+            plt.show()
 
         # for j in range(len(bigt)):
             # self.error(accepted= 0, experiment= bigy[j])
