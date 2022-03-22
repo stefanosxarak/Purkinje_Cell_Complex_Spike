@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import time
 from HH_model import *
 
-
-
 start_time = time.time()
 
 # solve a 13 equation system drop 1 replace with np.ones for more accurate initialisation
@@ -107,7 +105,6 @@ class Markov():
             print(v[i])
 
             for j in range(0,self.tmax):
-                # print(v[i])
                 markov = solve_ivp(self.derivatives, t_span=(j,j+1), y0=y, method='BDF',t_eval=np.linspace(j, j+1, 100), args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
 
                 # markov.y has shape (13,100) and y has shape (13,)
@@ -116,19 +113,16 @@ class Markov():
                 self.bigy = np.concatenate((self.bigy,markov.y[-1,:]))    
                 self.bigt = np.concatenate((self.bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
 
-                # Normalising the y 
+                #   Updating and normalising the y 
                 y = markov.y[:,-1]
                 y = y/np.sum(y)
 
-            # print(self.bigy)
-            ax = plt.subplot()
-            ax.plot(self.bigt, self.bigy)
-            ax.set_xlabel('Time (ms)')
-            plt.grid()
-            plt.show()
+            # ax = plt.subplot()
+            # ax.plot(self.bigt, self.bigy)
+            # ax.set_xlabel('Time (ms)')
+            # plt.grid()
+            # plt.show()
 
-        # for j in range(len(bigt)):
-            # self.error(accepted= 0, experiment= bigy[j])
 
 if __name__ == '__main__':
     runner = Markov()

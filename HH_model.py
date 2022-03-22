@@ -7,12 +7,9 @@ import time
 
 start_time = time.time()
 
-class HodgkinHuxley():
-    # Hodgkin - Huxley model
-
+class HodgkinHuxley():      # Hodgkin - Huxley model
     def __init__(self):
         ### ALL UNITS NEED TO BE IN S.I. ###
-        # Paremeters are passed from the command line when the program is executed
        
         # print("Please Enter all the values in default units (graphs will automatically convert to S.I. units)")
         # self.g_na = float(input("Enter the value of gNa: "))                                   # Average sodoum channel conductance per unit area
@@ -80,7 +77,6 @@ class HodgkinHuxley():
     def h_inf(self,v):
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
 
-
     def frequency(self,y):
         firing_rate = []
         self.max_I = []
@@ -104,7 +100,6 @@ class HodgkinHuxley():
 
         return firing_rate
         
-
     def derivatives(self,t,y,inj):
         der = np.zeros(4)
         v = y[0]
@@ -151,8 +146,8 @@ class HodgkinHuxley():
 
         # ax = plt.subplot()
         # ax.plot(t, vp)
-        # ax.set_xlabel('Time (s)')
-        # ax.set_ylabel('Membrane potential (V)')
+        # ax.set_xlabel('Time (ms)')
+        # ax.set_ylabel('Membrane potential (mV)')
         # ax.set_title('Neuron potential')
         # plt.grid()
         # plt.savefig('Neuron Potential')
@@ -164,7 +159,7 @@ class HodgkinHuxley():
         # ax.plot(t, m, 'g', label='Sodium (Opening): m')
         # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
         # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (s)')
+        # ax.set_xlabel('Time (ms)')
         # ax.set_title('Potassium and Sodium channels')
         # plt.legend()
         # plt.savefig('Ion channel gating variables with respect to time')
@@ -177,7 +172,7 @@ class HodgkinHuxley():
         # ax.plot(vp, m, 'g', label='V - m')
         # ax.plot(vp, h, 'r', label='V - h')
         # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (V)')
+        # ax.set_xlabel('Voltage (mV)')
         # ax.set_title('Limit cycles')
         # plt.legend()
         # plt.savefig('Limit Cycles')
@@ -187,8 +182,8 @@ class HodgkinHuxley():
         # ax = plt.subplot()
         # ax.plot(self.var_inj, firing_rate)
         # ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
-        # ax.set_xlabel("Input Current(A)")
-        # ax.set_ylabel("Firing rate(Hz)")
+        # ax.set_xlabel("Input Current(uA)")
+        # ax.set_ylabel("Firing rate(kHz)")
         # ax.set_title('f-I Curve')
         # plt.legend()
         # plt.savefig('f-I Curve')
