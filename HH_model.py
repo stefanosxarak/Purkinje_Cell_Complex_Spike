@@ -2,7 +2,7 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-# from Markov_Model import *
+from Markov_Model import *
 import time
 
 start_time = time.time()
@@ -38,7 +38,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
         self.t  = np.linspace(0, self.tmax, 100)
-        # self.markovian = Markov() 
+        self.markovian = Markov() 
 
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
@@ -104,10 +104,11 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         der = np.zeros(4)
         v = y[0]
         n = y[1]
-        m = y[2]
-        h = y[3]
+        # m = y[2]
+        h = y[2]
+        o = 1.1    #o is the fraction of gates in the open state 
 
-        GNa = self.g_na * m**3.0 * h    #This will need to change when we merge the files
+        GNa = self.g_na * o    #This will need to change when we merge the files
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -118,31 +119,30 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
 
         der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
         der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
-        der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
-        der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
+        # der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
+        der[2] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
 
         return der
 
-    def lala(self):
+    def Main(self):
         v = self.v
         t = self.t
 
-        # m = self.markovian.scheme(v)
-        # print(np.shape(m))
-
-        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
+        y = np.array([v, self.n_inf(v), self.h_inf(v)], dtype= 'float64')
 
         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
         
         vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
         n = result.y[1,:]
-        m = result.y[2,:]
-        h = result.y[3,:]
-        return vp
+        # m = result.y[2,:]
+        h = result.y[2,:]
 
+        m = self.markovian.scheme(v)
+        print(np.shape(m))
+        
         # firing_rate = self.frequency(y)
 
-        # Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
+        Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
         # ax = plt.subplot()
         # ax.plot(t, vp)
@@ -189,7 +189,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         # plt.savefig('f-I Curve')
         # plt.show()
 
-# if __name__ == '__main__':
-#     runner = HodgkinHuxley()
-#     runner.Main()
-#     print("--- %s seconds ---" % (time.time() - start_time))
+if __name__ == '__main__':
+    runner = HodgkinHuxley()
+    runner.Main()
+    print("--- %s seconds ---" % (time.time() - start_time))
