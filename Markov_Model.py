@@ -3,7 +3,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import time
-# from HH_model import *
+from HH_model import *
 
 start_time = time.time()
 
@@ -35,10 +35,10 @@ class Markov():
         self.n = 0.75        # m*s**(-1)
         self.f = 0.005       # m*s**(-1)
         self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)   # m*s**(-1)
-        # self.hh = HodgkinHuxley() 
+        self.hh = HodgkinHuxley() 
 
         self.tmax = 35 
-        self.t  = np.linspace(0, self.tmax, 100)
+        # self.t  = np.linspace(0, self.tmax, 100)
         # self.scheme(self.v)
 
 
@@ -95,21 +95,21 @@ class Markov():
 
         return der
 
-    def scheme(self,v):
-        # v = self.hh.lala()
-        for i in range(0,len(self.t)):
+    def Main(self):
+        v = self.hh.lala()
+        for i in range(0,len(v)):
             y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
             self.bigy = np.array([])
             self.bigt = np.array([])
             self.bigo = np.array([])
 
             for j in range(0,self.tmax):
-                markov = solve_ivp(self.derivatives, t_span=(j,j+1), y0=y, method='BDF',t_eval=np.linspace(j, j+1, 100), args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+                markov = solve_ivp(self.derivatives, t_span=(j,j+1), y0=y, method='BDF',t_eval=np.linspace(j, j+1, 100), args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
 
                 # markov.y has shape (13,100) and y has shape (13,)
                 # np.shape(markov.y[-1,:]) # (100,)
 
-                self.bigo = np.concatenate((self.bigo,markov.y[11]))      
+                self.bigo = np.concatenate((self.bigo,markov.y[11]))    
                 self.bigy = np.concatenate((self.bigy,markov.y[-1,:]))    
                 self.bigt = np.concatenate((self.bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
 
@@ -123,9 +123,9 @@ class Markov():
         ax.set_xlabel('Time (ms)')
         plt.grid()
         plt.show()
-        return self.bigo
 
-# if __name__ == '__main__':
-#     runner = Markov()
-#     runner.Main()
-#     print("--- %s seconds ---" % (time.time() - start_time))
+
+if __name__ == '__main__':
+    runner = Markov()
+    runner.Main()
+    print("--- %s seconds ---" % (time.time() - start_time))
