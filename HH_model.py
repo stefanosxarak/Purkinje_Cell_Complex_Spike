@@ -37,7 +37,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         self.tmax = 35.   
         self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
-        self.t  = np.linspace(0, self.tmax, 100)
+        self.t  = np.linspace(0, self.tmax, 1000)
         # self.markovian = Markov() 
 
     def alpha_n(self,v):
@@ -152,7 +152,6 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         # plt.grid()
         # plt.savefig('Neuron Potential')
         # plt.show()
-
 
         # ax = plt.subplot()
         # ax.plot(t, n, 'b', label='Potassium Channel: n')
