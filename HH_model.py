@@ -138,44 +138,44 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         n = result.y[1,:]
         m = result.y[2,:]
         h = result.y[3,:]
-        return vp
 
         # firing_rate = self.frequency(y)
 
         # Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
-        # ax = plt.subplot()
-        # ax.plot(t, vp)
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Membrane potential (mV)')
-        # ax.set_title('Neuron potential')
-        # plt.grid()
-        # plt.savefig('Neuron Potential')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, vp)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Membrane potential (mV)')
+        ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Figures/Neuron Potential')
+        plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(t, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_title('Potassium and Sodium channels')
-        # plt.legend()
-        # plt.savefig('Ion channel gating variables with respect to time')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, n, 'b', label='Potassium Channel: n')
+        ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Time (ms)')
+        ax.set_title('Potassium and Sodium channels')
+        plt.legend()
+        plt.savefig('Figures/Ion channel gating variables with respect to time')
+        plt.show()
 
 
-        # # Trajectories with limit cycles
-        # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='V - n')
-        # ax.plot(vp, m, 'g', label='V - m')
-        # ax.plot(vp, h, 'r', label='V - h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (mV)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
-        # plt.savefig('Limit Cycles')
-        # plt.show()
+        # Trajectories with limit cycles
+        ax = plt.subplot()
+        ax.plot(vp, n, 'b', label='V - n')
+        ax.plot(vp, m, 'g', label='V - m')
+        ax.plot(vp, h, 'r', label='V - h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Voltage (mV)')
+        ax.set_title('Limit cycles')
+        plt.legend()
+        plt.savefig('Figures/Limit Cycles')
+        plt.show()
+        return vp
 
         # F-I curve
         # ax = plt.subplot()
