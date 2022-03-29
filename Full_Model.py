@@ -2,29 +2,14 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-# from Markov_Model import *
+from Markov_Model import *
+from HH_model import *
 import time
 
 start_time = time.time()
 
-class HodgkinHuxley():      # Hodgkin - Huxley model
+class FullModel():
     def __init__(self):
-        ### ALL UNITS NEED TO BE IN S.I. ###
-       
-        # print("Please Enter all the values in default units (graphs will automatically convert to S.I. units)")
-        # self.g_na = float(input("Enter the value of gNa: "))                                   # Average sodoum channel conductance per unit area
-        # self.g_k  = float(input("Enter the value of gK: "))                                    # Average potassium channel conductance per unit area
-        # self.g_l  = float(input("Enter the value of gl: "))                                    # Average leak channel conductance per unit area
-        # self.C_m  = float(input("Enter the value of membrane capacitance c_m: "))              # Membrane capacitance per unit area
-        # self.v    = float(input("Enter the value of the membrane potential v: "))              # v is the membrane potential
-        # self.vna  = float(input("Enter the value of vNa: "))                                   # Potassium potential
-        # self.vk   = float(input("Enter the value of vK: "))                                    # Sodium potential
-        # self.vl   = float(input("Enter the value of vl: "))                                    # Leak potential
-        # self.vthresh   = float(input("Enter the value of voltage threshold: "))                # Voltage threshold for spikes
-        # self.tmax = float(input("Enter the total duration of simulation: "))
-        # self.i_inj   = float(input("Enter the value of Input current i_inj: "))                # Input current
-
-                
         self.g_na = 120.               
         self.g_k  = 36.                      
         self.g_l  = 0.3                   
@@ -35,7 +20,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         self.vl   = 10.613   
         self.vthresh = 55.*milli                      
         self.tmax = 35.   
-        self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
+        self.i_inj = 10.   
         
         self.t  = np.linspace(0, self.tmax, 100)
         # self.markovian = Markov() 
@@ -51,17 +36,6 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
     def beta_n(self,v):
         return (0.125 * np.exp(- v/ 80.))
 
-    def alpha_m(self,v):
-        nom = 0.1  * (25. - v)
-        denom = (np.exp((25. - v) / 10.) - 1.)
-
-        if nom == 0 and denom == 0 :
-            return (1.5/(-1 + np.exp(3./2.)))
-        else:
-            return (nom / denom)
-    def beta_m(self,v):
-        return (4. * np.exp(- v/ 18.))
-
     def alpha_h(self,v):
         return (0.07 * np.exp(- v/ 20.))
     def beta_h(self,v):
@@ -69,10 +43,6 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
-
-    # To be replaced by the markovian scheme
-    def m_inf(self,v):
-        return self.alpha_m(v) / (self.alpha_m(v) + self.beta_m(v))
 
     def h_inf(self,v):
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
@@ -175,20 +145,9 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         # plt.legend()
         # plt.savefig('Figures/Limit Cycles')
         # plt.show()
-        return vp
+ 
 
-        # F-I curve
-        # ax = plt.subplot()
-        # ax.plot(self.var_inj, firing_rate)
-        # ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
-        # ax.set_xlabel("Input Current(uA)")
-        # ax.set_ylabel("Firing rate(kHz)")
-        # ax.set_title('f-I Curve')
-        # plt.legend()
-        # plt.savefig('f-I Curve')
-        # plt.show()
-
-# if __name__ == '__main__':
-#     runner = HodgkinHuxley()
-#     runner.Main()
-#     print("--- %s seconds ---" % (time.time() - start_time))
+if __name__ == '__main__':
+    runner = HodgkinHuxley()
+    runner.Main()
+    print("--- %s seconds ---" % (time.time() - start_time))

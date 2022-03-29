@@ -42,14 +42,6 @@ class Markov():
         # self.scheme(self.v)
 
 
-    def error(self,accepted,experiment):
-        if accepted == 0 :
-            err = np.abs(100 -(experiment - accepted)/(accepted+1) *100)
-            print("The error percentage is:", err,"%")
-        else:
-            err = np.abs((experiment - accepted)/(accepted) *100)
-            print("The error percentage is:", err,"%")
-
     def alpha(self,v):
         return 150.* np.exp(v/20.)
     def beta(self,v):
@@ -97,30 +89,39 @@ class Markov():
 
     def Main(self):
         v = self.hh.lala()
+        for i in range(0,len(v)):
+            v[i] = 0
         self.bigy = np.array([])
         self.bigt = np.array([])
         self.bigo = np.array([])
+        self.bigb = np.array([])
+        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
         j=0 # time step being self.tmax/len(v)
         for i in range(0,len(v)):
-            y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
             markov = solve_ivp(self.derivatives, t_span=(j,j+self.tmax/len(v)), y0=y, method='BDF', args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
             
             # markov.y has shape (13,100) and y has shape (13,)
             # np.shape(markov.y[-1,:]) # (100,)
 
-            self.bigo = np.concatenate((self.bigo,markov.y[11]))    
+            self.bigo = np.concatenate((self.bigo,markov.y[11]))
+            self.bigb = np.concatenate((self.bigb,markov.y[12]))        
             self.bigy = np.concatenate((self.bigy,markov.y[-1,:]))    
             self.bigt = np.concatenate((self.bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
 
-            #   Updating and normalising the y 
+            #   Updating and normalising the y values
             y = markov.y[:,-1]
             y = y/np.sum(y)
 
             j+=self.tmax/len(v)
 
+        # print(np.shape(self.bigb))
+        # print(np.shape(self.bigo))
+        # print(np.shape(self.bigt))
+
         ax = plt.subplot()
         ax.plot(self.bigt, self.bigo)
+        ax.plot(self.bigt, self.bigb)
         ax.set_xlabel('Time (ms)')
         plt.grid()
         plt.show()
