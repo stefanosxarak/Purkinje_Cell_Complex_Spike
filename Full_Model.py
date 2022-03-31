@@ -7,6 +7,7 @@ from HH_model import *
 import time
 
 start_time = time.time()
+tmax = 35
 
 class FullModel():
     def __init__(self):
@@ -18,12 +19,10 @@ class FullModel():
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613   
-        self.vthresh = 55.*milli                      
-        self.tmax = 35.   
         self.i_inj = 10.   
         
-        self.t  = np.linspace(0, self.tmax, 100)
-        # self.markovian = Markov() 
+        self.t  = np.linspace(0, tmax, 100)
+        self.markovian = Markov() 
 
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
@@ -46,38 +45,14 @@ class FullModel():
 
     def h_inf(self,v):
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
-
-    def frequency(self,y):
-        firing_rate = []
-        self.max_I = []
-        self.var_inj = np.linspace(0, self.i_inj, 6)
-        spikes = 0               
-
-        for i in range(len(self.var_inj)):
-            spikes = 0
-            result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
-
-            for n in range(len(self.t)):
-                if result.y[0,n]*milli >= self.vthresh and result.y[0,n-1]*milli < self.vthresh:
-                    spikes += 1
-            firing_rate.append(spikes/self.tmax)
-
-
-        for i in range(len(self.var_inj)):
-            if firing_rate[i] ==0:
-                self.max_I.append(self.var_inj[i])          # threshold input current.
-        print(max(self.max_I))
-
-        return firing_rate
         
-    def derivatives(self,t,y,inj):
-        der = np.zeros(4)
+    def derivatives(self,t,y,inj,α,β,ξ,γ,δ,ε,d,u,n,f,a):
+        der = np.zeros(16)
         v = y[0]
         n = y[1]
-        m = y[2]
-        h = y[3]
+        h = y[2]
 
-        GNa = self.g_na * m**3.0 * h    #This will need to change when we merge the files
+        GNa = self.g_na * self.markovian.o    
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -85,33 +60,55 @@ class FullModel():
         i_k = GK * (v - self.vk )
         i_l = GL * (v - self.vl )
 
+        mder   = self.markovian.derivatives(t,y,v,α,β,ξ,γ,δ,ε,d,u,n,f,a)
 
         der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
         der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
-        der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
-        der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
+        der[2] = mder[0]                                               # dC1/dt
+        der[3] = mder[1]                                               # dC2/dt
+        der[4] = mder[2]                                               # dC3/dt
+        der[5] = mder[3]                                               # dC4/dt
+        der[6] = mder[4]                                               # dC5/dt
+        der[7] = mder[5]                                               # dI1/dt
+        der[8] = mder[6]                                               # dI2/dt
+        der[9] = mder[7]                                               # dI3/dt
+        der[10] = mder[8]                                              # dI4/dt
+        der[11] = mder[9]                                              # dI5/dt
+        der[12] = mder[10]                                             # dI6/dt
+        der[13] = mder[11]                                             # do/dt
+        der[14] = mder[12]                                             # db/dt
+        der[15] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)   # dh/dt
 
         return der
 
-    def lala(self):
+    def Main(self):
         v = self.v
         t = self.t
 
-        # m = self.markovian.scheme(v)
-        # print(np.shape(m))
+        y = np.array([v, self.n_inf(v), self.h_inf(v),self.markovian.c0,self.markovian.c1,self.markovian.c2,self.markovian.c3,self.markovian.c4,self.markovian.I0,self.markovian.I1,self.markovian.I2,self.markovian.I3,self.markovian.I4,self.markovian.I5,self.markovian.o,self.markovian.b], dtype= 'float64')
 
-        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
-
-        result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
+        result = solve_ivp(self.derivatives, t_span=(0,tmax), y0=y, t_eval=t,method='BDF', args=(self.i_inj,self.markovian.alpha(v), self.markovian.beta(v), self.markovian.ksi(v), self.markovian.γ,self.markovian.δ,self.markovian.ε,self.markovian.d,self.markovian.u,self.markovian.n,self.markovian.f,self.markovian.a,)) 
         
-        vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
+        vp = result.y[0,:]   
         n = result.y[1,:]
-        m = result.y[2,:]
-        h = result.y[3,:]
+        m1 = result.y[2,:]
+        m2 = result.y[3,:]
+        m3 = result.y[4,:]
+        m4 = result.y[5,:]
+        m5 = result.y[6,:]
+        m6 = result.y[7,:]
+        m7 = result.y[8,:]
+        m8 = result.y[9,:]
+        m9 = result.y[10,:]
+        m10 = result.y[11,:]
+        m11 = result.y[12,:]
+        m12 = result.y[13,:]
+        m13 = result.y[14,:]
+        h = result.y[15,:]
 
-        # firing_rate = self.frequency(y)
+        print(vp)
 
-        # Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
+        # Markov.error(self,105.40,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
         # ax = plt.subplot()
         # ax.plot(t, vp)
@@ -121,33 +118,9 @@ class FullModel():
         # plt.grid()
         # plt.savefig('Figures/Neuron Potential')
         # plt.show()
-
-        # ax = plt.subplot()
-        # ax.plot(t, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
-        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_title('Potassium and Sodium channels')
-        # plt.legend()
-        # plt.savefig('Figures/Ion channel gating variables with respect to time')
-        # plt.show()
-
-
-        # # Trajectories with limit cycles
-        # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='V - n')
-        # ax.plot(vp, m, 'g', label='V - m')
-        # ax.plot(vp, h, 'r', label='V - h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (mV)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
-        # plt.savefig('Figures/Limit Cycles')
-        # plt.show()
  
 
 if __name__ == '__main__':
-    runner = HodgkinHuxley()
+    runner = FullModel()
     runner.Main()
     print("--- %s seconds ---" % (time.time() - start_time))

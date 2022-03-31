@@ -6,7 +6,6 @@ import time
 from HH_model import *
 
 start_time = time.time()
-
 # solve a 13 equation system drop 1 replace with np.ones for more accurate initialisation
 class Markov():
     # Current through the resurgent sodium channel is described using a Markovian Scheme
@@ -39,8 +38,6 @@ class Markov():
 
         self.tmax = 35 
         # self.t  = np.linspace(0, self.tmax, 100)
-        # self.scheme(self.v)
-
 
     def alpha(self,v):
         return 150.* np.exp(v/20.)
@@ -87,10 +84,7 @@ class Markov():
 
         return der
 
-    def Main(self):
-        v = self.hh.lala()
-        for i in range(0,len(v)):
-            v[i] = 0
+    def norm(self,v):
         self.bigy = np.array([])
         self.bigt = np.array([])
         self.bigo = np.array([])
@@ -99,7 +93,7 @@ class Markov():
 
         j=0 # time step being self.tmax/len(v)
         for i in range(0,len(v)):
-            markov = solve_ivp(self.derivatives, t_span=(j,j+self.tmax/len(v)), y0=y, method='BDF', args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+            markov = solve_ivp(self.derivatives, t_span=(j,j+self.tmax/len(v)), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
             
             # markov.y has shape (13,100) and y has shape (13,)
             # np.shape(markov.y[-1,:]) # (100,)
@@ -126,8 +120,3 @@ class Markov():
         plt.grid()
         plt.show()
 
-
-if __name__ == '__main__':
-    runner = Markov()
-    runner.Main()
-    print("--- %s seconds ---" % (time.time() - start_time))
