@@ -46,7 +46,7 @@ class Markov():
     def ksi(self,v):
         return 0.03 * np.exp(-v/25.)
 
-    def derivatives(self,t,y ,v,α,β,ξ,γ,δ,ε,d,u,n,f,a):
+    def derivatives(self,t,y,v,α,β,ξ,γ,δ,ε,d,u,n,f,a):
         c0 = y[0]
         c1 = y[1]
         c2 = y[2]
@@ -92,6 +92,7 @@ class Markov():
         y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
         j=0 # time step being self.tmax/len(v)
+        # For Markov model with variable v look at commit: 32c6316 
         for i in range(0,len(v)):
             markov = solve_ivp(self.derivatives, t_span=(j,j+self.tmax/len(v)), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
             

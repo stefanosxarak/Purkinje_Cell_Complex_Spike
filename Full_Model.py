@@ -48,10 +48,27 @@ class FullModel():
         
     def derivatives(self,t,y,inj,α,β,ξ,γ,δ,ε,d,u,n,f,a):
         der = np.zeros(16)
+
         v = y[0]
         n = y[1]
         h = y[2]
+        c0 = y[3]
+        c1 = y[4]
+        c2 = y[5]
+        c3 = y[6]
+        c4 = y[7]
+        I0 = y[8]
+        I1 = y[9]
+        I2 = y[10]
+        I3 = y[11]
+        I4 = y[12]
+        I5 = y[13]
+        o  = y[14]
+        b  = y[15] 
 
+        aav=α*a
+        bav=α/a
+        
         GNa = self.g_na * self.markovian.o    
         GK = self.g_k * n**4.0
         GL = self.g_l
@@ -60,25 +77,40 @@ class FullModel():
         i_k = GK * (v - self.vk )
         i_l = GL * (v - self.vl )
 
-        mder   = self.markovian.derivatives(t,y,v,α,β,ξ,γ,δ,ε,d,u,n,f,a)
+        # mder   = self.markovian.derivatives(t,y,v,α,β,ξ,γ,δ,ε,d,u,n,f,a)
 
         der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
         der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
-        der[2] = mder[0]                                               # dC1/dt
-        der[3] = mder[1]                                               # dC2/dt
-        der[4] = mder[2]                                               # dC3/dt
-        der[5] = mder[3]                                               # dC4/dt
-        der[6] = mder[4]                                               # dC5/dt
-        der[7] = mder[5]                                               # dI1/dt
-        der[8] = mder[6]                                               # dI2/dt
-        der[9] = mder[7]                                               # dI3/dt
-        der[10] = mder[8]                                              # dI4/dt
-        der[11] = mder[9]                                              # dI5/dt
-        der[12] = mder[10]                                             # dI6/dt
-        der[13] = mder[11]                                             # do/dt
-        der[14] = mder[12]                                             # db/dt
-        der[15] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)   # dh/dt
 
+        der[2] = u * I0 + β*c1 - c0*4*α - d*c0                                       # dC1/dt
+        der[3] = u/a*I1 + 2*β*c2+4*α*c0-(3*α+ β + d*a)*c1                            # dC2/dt
+        der[4] = (u/(a**2)) *I2 +3*β *c3 + 3*α *c1-(2*α +2*β + d* a**2)*c2           # dC3/dt
+        der[5] = (u/(a**3)) *I3+ 4*β *c4 +2*α *c2-(α + 3*β + d* a**3)*c3             # dC4/dt
+        der[6] = (u/(a**4)) *I4+ δ*o+ α*c3 -(γ +4*β + d*a**4)*c4                     # dC5/dt
+        der[7]  = d * c0 + 4*β/a *I1 - I0 *u - I0 *a*α                               # dI1/dt
+        der[8]  = d*a *c1 + 3*bav*I2 + aav*I0      - (u/a + 2*aav + 4*bav) *I1       # dI2/dt
+        der[9]  = d*a**2 *c2 + 2*bav*I3 + 2*aav*I1 - (u/a**2 + 3*aav + 3*bav) *I2    # dI3/dt
+        der[10]  = d*a**3 *c3 + bav*I4 + 3*aav*I2   - (u/a**3 + 4*aav + 2*bav) *I3    # dI4/dt
+        der[11]  = d*a**4 *c4 + δ*I5 + 4*aav*I3     - (u/a**4 + γ + bav) *I4          # dI5/dt
+        der[12] = n*o + γ*I4 - (f + δ) *I5                                           # dI6/dt
+        der[13] = γ* c4+ ξ*b+ f*I5 - (δ + n + ε)*o                                   # do/dt
+        der[14] = o * ε - b*ξ                                                        # db/dt
+
+        # der[2] = mder[0]                                               # dC1/dt
+        # der[3] = mder[1]                                               # dC2/dt
+        # der[4] = mder[2]                                               # dC3/dt
+        # der[5] = mder[3]                                               # dC4/dt
+        # der[6] = mder[4]                                               # dC5/dt
+        # der[7] = mder[5]                                               # dI1/dt
+        # der[8] = mder[6]                                               # dI2/dt
+        # der[9] = mder[7]                                               # dI3/dt
+        # der[10] = mder[8]                                              # dI4/dt
+        # der[11] = mder[9]                                              # dI5/dt
+        # der[12] = mder[10]                                             # dI6/dt
+        # der[13] = mder[11]                                             # do/dt
+        # der[14] = mder[12]                                             # db/dt
+        der[15] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)   # dh/dt
+        print(der)
         return der
 
     def Main(self):
@@ -86,9 +118,11 @@ class FullModel():
         t = self.t
 
         y = np.array([v, self.n_inf(v), self.h_inf(v),self.markovian.c0,self.markovian.c1,self.markovian.c2,self.markovian.c3,self.markovian.c4,self.markovian.I0,self.markovian.I1,self.markovian.I2,self.markovian.I3,self.markovian.I4,self.markovian.I5,self.markovian.o,self.markovian.b], dtype= 'float64')
+        self.markovian.norm(v)
 
-        result = solve_ivp(self.derivatives, t_span=(0,tmax), y0=y, t_eval=t,method='BDF', args=(self.i_inj,self.markovian.alpha(v), self.markovian.beta(v), self.markovian.ksi(v), self.markovian.γ,self.markovian.δ,self.markovian.ε,self.markovian.d,self.markovian.u,self.markovian.n,self.markovian.f,self.markovian.a,)) 
-        
+        result = solve_ivp(self.derivatives, t_span=(0,tmax), y0=y, t_eval=t,method='BDF', args=(self.i_inj, self.markovian.alpha(v), self.markovian.beta(v), self.markovian.ksi(v), self.markovian.γ,self.markovian.δ,self.markovian.ε,self.markovian.d,self.markovian.u,self.markovian.n,self.markovian.f,self.markovian.a)) 
+        print(result)
+
         vp = result.y[0,:]   
         n = result.y[1,:]
         m1 = result.y[2,:]
@@ -106,7 +140,7 @@ class FullModel():
         m13 = result.y[14,:]
         h = result.y[15,:]
 
-        print(vp)
+        # print(vp)
 
         # Markov.error(self,105.40,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
