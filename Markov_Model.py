@@ -34,9 +34,6 @@ class Markov():
         self.a = ((self.u/self.d)/(self.f/self.n))**(1/8)   # m*s**(-1)
         self.hh = HodgkinHuxley() 
 
-        self.tmax = 35 
-        # self.t  = np.linspace(0, self.tmax, 100)
-
     def alpha(self,v):
         return 150.* np.exp(v/20.)
     def beta(self,v):
@@ -80,11 +77,11 @@ class Markov():
 
         return der
 
-    def mark_intgr(self,v):
+    def mark_intgr(self,v,i):
         y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
         # For Markov model with variable v look at commit: 32c6316 
-        markov = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+        markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
         
         # markov.y has shape (13,100) and y has shape (13,)
         # np.shape(markov.y[-1,:]) # (100,)
@@ -93,6 +90,4 @@ class Markov():
         y = markov.y[:,-1]
         y = y/np.sum(y)
 
-
-        print(np.shape(y))
         return y

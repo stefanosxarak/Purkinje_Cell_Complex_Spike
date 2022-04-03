@@ -7,7 +7,7 @@ from HH_model import *
 import time
 
 start_time = time.time()
-tmax = 35.
+tmax = 35
 
 class FullModel():
     def __init__(self):
@@ -24,17 +24,6 @@ class FullModel():
         self.markovian = Markov() 
         self.hh = HodgkinHuxley() 
         
-    def normalize(y):
-        # y is a array of shape (16,)
-        total=0
-        for i in range(2,15):
-            total+=y[i]
-
-        for i in range(2,15):
-            y[i]/=total
-
-        return y    
-
     def all_derivatives(self,t,y,inj,o):
         der = np.zeros(2)
 
@@ -59,18 +48,28 @@ class FullModel():
     def Main(self):
         v_init = self.v_init
         t = self.t
+        bigy = np.array([])
+        bigt = np.array([])
 
         y = np.array([v_init, self.hh.n_inf(v_init)], dtype= 'float64')
 
-        my = self.markovian.mark_intgr(v_init) # this is the last y from markov hence no resurgence, shape(13,)
-        result = solve_ivp(self.all_derivatives, t_span=(0,tmax), y0=y, t_eval=t, method='BDF', args=(self.hh.i_inj, my[11])) 
-        # print(result)
+        for i in range(0,tmax):
+            my = self.markovian.mark_intgr(v_init,i) # this is the last y from markov hence no resurgence, shape(13,)
+            result = solve_ivp(self.all_derivatives, t_span=(i,i+1), y0=y,t_eval=([i]), method='BDF', args=(self.hh.i_inj, my[11]))
+            bigy = np.concatenate((bigy,result.y[0]))   
+            bigt = np.concatenate((bigt,result.t))
 
-        vp  = result.y[0,:]   
-        n   = result.y[1,:]
+            print(np.shape(result.y[0,:]))
+            y = np.array([result.y[0,:], self.hh.n_inf(result.y[0,:])], dtype= 'float64') # Y does not update properly
+            print(np.shape(y))
+
+        print(np.shape(bigy))
+
+        # vp  = result.y[0,:]   
+        # n   = result.y[1,:]
 
         ax = plt.subplot()
-        ax.plot(t, vp)
+        ax.plot(bigt, bigy)
         ax.set_xlabel('Time (ms)')
         ax.set_ylabel('Membrane potential (mV)')
         ax.set_title('Neuron potential')
