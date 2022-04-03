@@ -88,7 +88,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
             result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
 
             for n in range(len(self.t)):
-                if result.y[0,n]*milli >= self.vthresh and result.y[0,n-1]*milli < self.vthresh:
+                if result.y[0,n]*milli >= self.vthresh and result.y[0,n-1]*milli < self.vthresh:        #OPTIMISE FOR LOOPS WITH NUMPY
                     spikes += 1
             firing_rate.append(spikes/self.tmax)
 
