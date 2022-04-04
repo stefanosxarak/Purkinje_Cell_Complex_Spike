@@ -38,39 +38,37 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
         self.t  = np.linspace(0, self.tmax, 100)
-        # self.markovian = Markov() 
 
     def alpha_n(self,v):
         nom = 0.01* (10 - v)
         denom = (np.exp((10 - v) / 10) - 1)
-
         if nom == 0 and denom == 0 :
             return 0.1
-        else:
-            return (nom / denom)
+        return (nom / denom)
+
     def beta_n(self,v):
         return (0.125 * np.exp(- v/ 80.))
 
     def alpha_m(self,v):
         nom = 0.1  * (25. - v)
         denom = (np.exp((25. - v) / 10.) - 1.)
-
         if nom == 0 and denom == 0 :
             return (1.5/(-1 + np.exp(3./2.)))
-        else:
-            return (nom / denom)
+        return (nom / denom)
+
     def beta_m(self,v):
         return (4. * np.exp(- v/ 18.))
 
     def alpha_h(self,v):
         return (0.07 * np.exp(- v/ 20.))
+
     def beta_h(self,v):
         return (1. / (np.exp((30. -v) / 10.) + 1.))
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
 
-    # To be replaced by the markovian scheme
+    # m is replaced by the markovian scheme
     def m_inf(self,v):
         return self.alpha_m(v) / (self.alpha_m(v) + self.beta_m(v))
 
@@ -107,7 +105,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         m = y[2]
         h = y[3]
 
-        GNa = self.g_na * m**3.0 * h    #This will need to change when we merge the files
+        GNa = self.g_na * m**3.0 * h    #    m is replaced by the markovian scheme
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -126,9 +124,6 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
     def lala(self):
         v = self.v
         t = self.t
-
-        # m = self.markovian.scheme(v)
-        # print(np.shape(m))
 
         y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
@@ -187,8 +182,3 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         # plt.legend()
         # plt.savefig('f-I Curve')
         # plt.show()
-
-# if __name__ == '__main__':
-#     runner = HodgkinHuxley()
-#     runner.Main()
-#     print("--- %s seconds ---" % (time.time() - start_time))

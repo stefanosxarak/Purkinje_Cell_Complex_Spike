@@ -23,6 +23,20 @@ class FullModel():
         self.t  = np.linspace(0, tmax, 1000)
         self.markovian = Markov() 
         self.hh = HodgkinHuxley() 
+
+        self.c0 = self.markovian.c0
+        self.c1 = self.markovian.c1
+        self.c2 = self.markovian.c2
+        self.c3 = self.markovian.c3
+        self.c4 = self.markovian.c4
+        self.I0 = self.markovian.I0
+        self.I1 = self.markovian.I1
+        self.I2 = self.markovian.I2
+        self.I3 = self.markovian.I3
+        self.I4 = self.markovian.I4
+        self.I5 = self.markovian.I5
+        self.o = self.markovian.o
+        self.b = self.markovian.b
         
     def all_derivatives(self,t,y,inj,o):
         der = np.zeros(2)
@@ -38,35 +52,37 @@ class FullModel():
         i_k = GK * (v - self.vk )
         i_l = GL * (v - self.vl )
 
-        der[0] = (inj - i_na - i_k - i_l) / self.c_m                          # dv/dt
+        der[0] = (inj - i_na - i_k - i_l) / self.c_m                          # dV/dt
         der[1] = (self.hh.alpha_n(v) * (1 - n)) - (self.hh.beta_n(v) * n)     # dn/dt
 
-        # print(der)
+        # hhder  = self.hh.derivatives(t,y,inj)
+        # der[0] = hhder[0]
+        # der[1] = hhder[1]
+        # der[2] = hhder[3]
+        print(der)
         return der
 
 
     def Main(self):
-        v_init = self.v_init
-        t = self.t
+        v = self.v_init
+
         bigy = np.array([])
         bigt = np.array([])
 
-        y = np.array([v_init, self.hh.n_inf(v_init)], dtype= 'float64')
-
+        my = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
+        y = np.array([v, self.hh.n_inf(v)], dtype= 'float64')
+        
         for i in range(0,tmax):
-            my = self.markovian.mark_intgr(v_init,i) # this is the last y from markov hence no resurgence, shape(13,)
-            result = solve_ivp(self.all_derivatives, t_span=(i,i+1), y0=y,t_eval=([i]), method='BDF', args=(self.hh.i_inj, my[11]))
-            bigy = np.concatenate((bigy,result.y[0]))   
+            my = self.markovian.mark_intgr(v,i,my)     # shape(13,)
+
+            result = solve_ivp(self.all_derivatives, t_span=(0,35), y0=y, t_eval=(np.linspace(i, i+0.0025, 1)), method='BDF', args=(self.hh.i_inj, my[11]))
+
+            bigy = np.concatenate((bigy,result.y[0,:]))   
             bigt = np.concatenate((bigt,result.t))
 
-            print(np.shape(result.y[0,:]))
-            y = np.array([result.y[0,:], self.hh.n_inf(result.y[0,:])], dtype= 'float64') # Y does not update properly
-            print(np.shape(y))
+            v = result.y[0,:]
+            y = np.squeeze(np.array([v, self.hh.n_inf(v)], dtype= 'float64'))
 
-        print(np.shape(bigy))
-
-        # vp  = result.y[0,:]   
-        # n   = result.y[1,:]
 
         ax = plt.subplot()
         ax.plot(bigt, bigy)

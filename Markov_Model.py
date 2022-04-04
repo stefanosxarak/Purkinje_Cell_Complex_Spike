@@ -23,7 +23,6 @@ class Markov():
         self.I5 = 0.
         self.o = 0.
         self.b = 0.
-
         self.γ = 150.        # m*s**(-1)
         self.δ = 40.         # m*s**(-1)
         self.ε = 1.75        # m*s**(-1)
@@ -77,14 +76,14 @@ class Markov():
 
         return der
 
-    def mark_intgr(self,v,i):
-        y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
+    def mark_intgr(self,v,i,y):
+        # y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
         # For Markov model with variable v look at commit: 32c6316 
         markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
         
-        # markov.y has shape (13,100) and y has shape (13,)
-        # np.shape(markov.y[-1,:]) # (100,)
+        # markov.y has shape (13,93) and y has shape (13,)
+        # print(np.shape(markov.y)) # (93,)
 
         #   Updating and normalising the y values
         y = markov.y[:,-1]
