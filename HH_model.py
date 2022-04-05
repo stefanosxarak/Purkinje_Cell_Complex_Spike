@@ -2,7 +2,6 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-# from Markov_Model import *
 import time
 
 start_time = time.time()
@@ -121,18 +120,18 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
 
         return der
 
-    def lala(self):
-        v = self.v
-        t = self.t
+    # def lala(self):
+    #     v = self.v
+    #     t = self.t
 
-        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
+    #     y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
-        result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
+    #     result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
         
-        vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
-        n = result.y[1,:]
-        m = result.y[2,:]
-        h = result.y[3,:]
+    #     vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
+    #     n = result.y[1,:]
+    #     m = result.y[2,:]
+    #     h = result.y[3,:]
 
         # firing_rate = self.frequency(y)
 
@@ -170,7 +169,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         # plt.legend()
         # plt.savefig('Figures/Limit Cycles')
         # plt.show()
-        return vp
+        # return vp
 
         # F-I curve
         # ax = plt.subplot()
