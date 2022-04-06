@@ -120,6 +120,16 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
 
         return der
 
+    def graphs(self,v,t,ina,ik,il):
+        ax = plt.subplot()
+        ax.plot(t, ina, 'b', label='Potassium Channel')
+        ax.plot(t, ik,  'g', label='Sodium Channel')
+        ax.plot(t, il,  'r', label='Leak Channel')
+        # ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Figures/Trace')
+        plt.show()
+
     # def lala(self):
     #     v = self.v
     #     t = self.t

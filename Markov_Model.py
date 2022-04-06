@@ -1,6 +1,6 @@
 from Units import *
 import numpy as np
-from scipy.integrate import solve_ivp
+# from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import time
 from HH_model import *
@@ -28,7 +28,7 @@ class Markov():
     def ksi(self,v):
         return 0.03 * np.exp(-v/25.)
 
-    def derivatives(self,y,v,α,β,ξ,):
+    def derivatives(self,y,α,β,ξ,):
         c0 = y[0]
         c1 = y[1]
         c2 = y[2]
