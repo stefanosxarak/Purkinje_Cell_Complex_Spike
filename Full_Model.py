@@ -11,8 +11,11 @@ tmax = 35                   # Duration of the simulation
 i_na_trace = []             # Trace for graph purposes
 i_k_trace = []
 i_leak_trace = []
-class Somatic_Voltage():
+
+class Somatic_Voltage:
+
     def __init__(self,g_na,g_k,g_l,c_m,v_init,vna,vk,vl):
+
         self.g_na     = g_na               
         self.g_k      = g_k                      
         self.g_l      = g_l                   
@@ -22,9 +25,7 @@ class Somatic_Voltage():
         self.vk       = vk                        
         self.vl       = vl   
         
-    def derivative(self,t,y,inj,o,n):
-        deriv = np.zeros(1)
-        v = y[0]
+    def derivative(self,t,v,inj,o,n):
 
         GNa = self.g_na * o    
         GK = self.g_k * n**4.0
@@ -44,42 +45,50 @@ class Somatic_Voltage():
 
 
 class All_Derivatives:
+
     def __init__(self,somatic_voltage,markov_states):
+
         self.hh = HodgkinHuxley() 
         self.somatic_voltage = somatic_voltage
         self.markov = markov_states
         
     def __call__(self,t,y): # t and y are called by the integrator
+
         v_soma   = y[0]
         n        = y[1]
         markov_y = y[2:15]
         markov_o = y[13]
 
-        dv = self.somatic_voltage.derivative(t,y,self.hh.i_inj,markov_o,n)         # dV/dt
+        dv = self.somatic_voltage.derivative(t,v_soma,self.hh.i_inj,markov_o,n)         # Call dV/dt and pass the parameters
         
-        dn = (self.hh.alpha_n(v_soma) * (1 - n)) - (self.hh.beta_n(v_soma) * n)    # dn/dt
+        dn = (self.hh.alpha_n(v_soma) * (1 - n)) - (self.hh.beta_n(v_soma) * n)         # dn/dt
 
-        dm = self.markov.derivatives(markov_y,self.markov.alpha(v_soma),self.markov.beta(v_soma),self.markov.ksi(v_soma)).ravel()
+        dm = self.markov.derivatives(markov_y,self.markov.alpha(v_soma),self.markov.beta(v_soma),self.markov.ksi(v_soma))
+
         return np.append([dv,dn],dm)
 
 def normalize(y):
-    total=0
 
+    total=0
     for i in range(2,15):
         total+=y[i]
 
     for i in range(2,15):
         y[i]/=total
-    # norm = y[2::16]/np.sum(y[2::16])      # normalise only the markov results from y[2] to y[15] but return the whole y
-    # y[2::16] = norm
+
+    # norm = y[2:15]/np.sum(y[2:15])      # normalise only the markov results from y[2] to y[15] but return the whole y
+    # y[2:15] = norm
     return y
 
 
-# call markovian scheme to get the markov derivatives
-mstates = Markov(150.,40.,1.75,0.005,0.5,0.75,0.005,3.3267)
+mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005, a=3.3267)  # call markovian scheme to get the markov derivatives
 hh = HodgkinHuxley() 
 
-somatic_voltage=Somatic_Voltage(120.,36.,0.3,1.,0.,115.,-12.,10.613)
+somatic_voltage=Somatic_Voltage(g_na=120., g_k=36., g_l=0.3, c_m=1., v_init=0., vna=115., vk=-12., vl=10.613)
+# somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88)             # Parameter values from Parameters2.py
+# somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,10.,45.,-88.,-88.)             # Parameter values from research paper
+# somatic_voltage=Somatic_Voltage(36.,120.,0.3,1.,0.,-115.,12.,-10.613)         # Parameter values from 2013 Action potential modelling
+
 v_initial = somatic_voltage.v_init
 
 f = All_Derivatives(somatic_voltage,mstates)  # All derivatives in one function
@@ -90,18 +99,21 @@ bigv = np.array([])
 bigt = np.array([])
 i=0
 status = 0
+
 while i< tmax and status==0 :
-    result = solve_ivp(f, t_span=(i,i+1), y0=y, t_eval=(np.linspace(i, i+1, 1000)), method='BDF')   # t_span stops at tmax
-    # print(np.shape(result.y[:,0]))
-    y = result.y[:,0]
-    y = normalize(y)    # TODO: y does not update
-    
-    bigv = np.concatenate((bigv,result.y[0,:-1]))           # :-1 to remove the last elemt of the array as it creates duplicate values when concatenated
-    bigt = np.concatenate((bigt,result.t[:-1]))             # :-1 to remove the last elemt of the array as it creates duplicate values when concatenated
+
+    result = solve_ivp(f, t_span=(i,i+1), y0=y, t_eval=(np.linspace(i, i+1, 1000)), method='BDF')   # t_span stops at tmax with step 1
+    y_norm = result.y[:,-1]
+    y = normalize(y_norm)                                   # Normalise only the markov derivatives at every step i
+
+    # print(np.shape(result.t))
+
+    bigv = np.concatenate((bigv,result.y[0,:]))             # Concatenate all the voltage values at specific times
+    bigt = np.concatenate((bigt,result.t))             
 
     status = result.status                                  # -1: Integration step failed.
     i+=1                                                    #  0: The solver successfully reached the end of t_span.
-   
+
 
 ax = plt.subplot()
 ax.plot(bigt, bigv)
@@ -116,6 +128,7 @@ plt.show()
 # if __name__ == '__main__':
 #     runner = FullModel()
 #     runner.Main()
+
 print("--- %s seconds ---" % (time.time() - start_time))
 
 

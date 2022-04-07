@@ -1,3 +1,4 @@
+from mimetypes import init
 from Units import *
 import numpy as np
 # from scipy.integrate import solve_ivp
@@ -6,12 +7,10 @@ import time
 from HH_model import *
 
 start_time = time.time()
-# solve a 13 equation system drop 1 replace with np.ones for more accurate initialisation
-class Markov():
-    # Current through the resurgent sodium channel is described using a Markovian Scheme
-    def __init__(self,γ,δ,ε,d,u,n,f,a):
-        self.c0 = 1.
-        
+class Markov:                               # Current through the sodium channel is described using a Markovian Scheme
+
+    def __init__(self,γ,δ,ε,d,u,n,f,a):    
+
         self.γ = γ       # m*s**(-1)
         self.δ = δ       # m*s**(-1)
         self.ε = ε       # m*s**(-1)
@@ -22,13 +21,19 @@ class Markov():
         self.a = a       # m*s**(-1)
 
     def alpha(self,v):
+
         return 150.* np.exp(v/20.)
+
     def beta(self,v):
-        return 3. * np.exp(-v/20.) 
+
+        return 3. * np.exp(-v/20.)
+
     def ksi(self,v):
+
         return 0.03 * np.exp(-v/25.)
 
-    def derivatives(self,y,α,β,ξ,):
+    def derivatives(self,y,α,β,ξ):
+
         c0 = y[0]
         c1 = y[1]
         c2 = y[2]
@@ -42,6 +47,7 @@ class Markov():
         I5 = y[10]
         o  = y[11]
         b  = y[12] 
+
         γ = self.γ     
         δ = self.δ       
         ε = self.ε       
@@ -50,7 +56,6 @@ class Markov():
         n = self.n       
         f = self.f       
         a = self.a
-
         aav=α*a
         bav=α/a
 
@@ -72,17 +77,30 @@ class Markov():
 
         return der
 
-    # def mark_intgr(self,v,i,y):
-    #     # y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
+    # def mark_intgr(self):
+        # v = self.hh.lala()
+        # for i in range(0,len(v)):
+        #     v[i] = 0
+        # self.bigy = np.array([])
+        # self.bigt = np.array([])
+        # self.bigo = np.array([])
+        # self.bigb = np.array([])
+        # y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
 
-    #     # For Markov model with variable v look at commit: 32c6316 
-    #     markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF', args=(v, self.alpha(v), self.beta(v), self.ksi(v), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
-        
-    #     # markov.y has shape (13,93) and y has shape (13,)
-    #     # print(np.shape(markov.y)) # (93,)
+        # j=0 # time step being self.tmax/len(v)
+        # for i in range(0,len(v)):
+        #     markov = solve_ivp(self.derivatives, t_span=(j,j+self.tmax/len(v)), y0=y, method='BDF', args=(v[i], self.alpha(v[i]), self.beta(v[i]), self.ksi(v[i]), self.γ,self.δ,self.ε,self.d,self.u,self.n,self.f,self.a))
+            
+        #     # markov.y has shape (13,100) and y has shape (13,)
+        #     # np.shape(markov.y[-1,:]) # (100,)
 
-    #     #   Updating and normalising the y values
-    #     y = markov.y[:,-1]
-    #     y = y/np.sum(y)
+        #     self.bigo = np.concatenate((self.bigo,markov.y[11]))
+        #     self.bigb = np.concatenate((self.bigb,markov.y[12]))        
+        #     self.bigy = np.concatenate((self.bigy,markov.y[-1,:]))    
+        #     self.bigt = np.concatenate((self.bigt,markov.t))          # last element of markov.t is the same with the first one from the next iteration
 
-    #     return y
+        #     #   Updating and normalising the y values
+        #     y = markov.y[:,-1]
+        #     y = y/np.sum(y)
+
+        #     j+=self.tmax/len(v)

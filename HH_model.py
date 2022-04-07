@@ -6,7 +6,7 @@ import time
 
 start_time = time.time()
 
-class HodgkinHuxley():      # Hodgkin - Huxley model
+class HodgkinHuxley:      # Hodgkin - Huxley model
     def __init__(self):
         ### ALL UNITS NEED TO BE IN S.I. ###
        
@@ -32,7 +32,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613   
-        self.vthresh = 55.*milli                      
+        self.vthresh = 55.                      
         self.tmax = 35.   
         self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
         
@@ -43,10 +43,12 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
         denom = (np.exp((10 - v) / 10) - 1)
         if nom == 0 and denom == 0 :
             return 0.1
-        return (nom / denom)
+        # return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
+        return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
-        return (0.125 * np.exp(- v/ 80.))
+        # return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
+        return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
         nom = 0.1  * (25. - v)
@@ -77,7 +79,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
     def frequency(self,y):
         firing_rate = []
         self.max_I = []
-        self.var_inj = np.linspace(0, self.i_inj, 6)
+        self.var_inj = np.linspace(0, self.i_inj, 100)
         spikes = 0               
 
         for i in range(len(self.var_inj)):
@@ -85,7 +87,7 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
             result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
 
             for n in range(len(self.t)):
-                if result.y[0,n]*milli >= self.vthresh and result.y[0,n-1]*milli < self.vthresh:        #OPTIMISE FOR LOOPS WITH NUMPY
+                if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        #OPTIMISE FOR LOOPS WITH NUMPY
                     spikes += 1
             firing_rate.append(spikes/self.tmax)
 
@@ -122,10 +124,10 @@ class HodgkinHuxley():      # Hodgkin - Huxley model
 
     def graphs(self,v,t,ina,ik,il):
         ax = plt.subplot()
-        ax.plot(t, ina, 'b', label='Potassium Channel')
-        ax.plot(t, ik,  'g', label='Sodium Channel')
-        ax.plot(t, il,  'r', label='Leak Channel')
-        # ax.set_title('Neuron potential')
+        ax.plot(t, ina, 'b', label='Potassium Current')
+        ax.plot(t, ik,  'g', label='Sodium Current')
+        ax.plot(t, il,  'r', label='Leak Current')
+        ax.set_title('Current contribution')
         plt.grid()
         plt.savefig('Figures/Trace')
         plt.show()
