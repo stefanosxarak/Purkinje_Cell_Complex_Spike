@@ -44,12 +44,12 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         denom = (np.exp((10. - v) / 10.) - 1.)
         if nom == 0 and denom == 0 :
             return 0.1
-        return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
-        # return (nom / denom)                         # Wiki equation(original HH)
+        # return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
+        return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
-        return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
-        # return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
+        # return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
+        return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
         nom = 0.1  * (25. - v)
