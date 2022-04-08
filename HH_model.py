@@ -39,16 +39,17 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         self.t  = np.linspace(0, self.tmax, 100)
 
     def alpha_n(self,v):
-        nom = 0.01* (10 - v)
-        denom = (np.exp((10 - v) / 10) - 1)
+
+        nom = 0.01* (10. - v)
+        denom = (np.exp((10. - v) / 10.) - 1.)
         if nom == 0 and denom == 0 :
             return 0.1
-        # return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
-        return (nom / denom)                         # Wiki equation(original HH)
+        return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
+        # return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
-        # return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
-        return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
+        return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
+        # return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
         nom = 0.1  * (25. - v)
@@ -63,6 +64,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
     def alpha_h(self,v):
         return (0.07 * np.exp(- v/ 20.))
 
+    # h is replaced by the markovian scheme
     def beta_h(self,v):
         return (1. / (np.exp((30. -v) / 10.) + 1.))
 
@@ -79,7 +81,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
     def frequency(self,y):
         firing_rate = []
         self.max_I = []
-        self.var_inj = np.linspace(0, self.i_inj, 100)
+        self.var_inj = [8,23,25,52,115,215]          # np.linspace(0, self.i_inj, 100)
         spikes = 0               
 
         for i in range(len(self.var_inj)):
@@ -87,7 +89,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
             result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
 
             for n in range(len(self.t)):
-                if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        #OPTIMISE FOR LOOPS WITH NUMPY
+                if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        # OPTIMISE FOR loops with NUMPY or list comprehensions
                     spikes += 1
             firing_rate.append(spikes/self.tmax)
 
@@ -98,7 +100,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         print(max(self.max_I))
 
         return firing_rate
-        
+   
     def derivatives(self,t,y,inj):
         der = np.zeros(4)
         v = y[0]
@@ -106,7 +108,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         m = y[2]
         h = y[3]
 
-        GNa = self.g_na * m**3.0 * h    #    m is replaced by the markovian scheme
+        GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -122,15 +124,29 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
 
         return der
 
-    def graphs(self,v,t,ina,ik,il):
+    def graphs(self,v,t,ina,ik,il,bigo,bigb,bigi6,bigc5):
+        # ADD injection current graph(either constant or the F-I curve)
+        # ADD Channel conductances
         ax = plt.subplot()
         ax.plot(t, ina, 'b', label='Potassium Current')
         ax.plot(t, ik,  'g', label='Sodium Current')
         ax.plot(t, il,  'r', label='Leak Current')
-        ax.set_title('Current contribution')
+        ax.set_title('Channel currents')
         plt.grid()
-        plt.savefig('Figures/Trace')
+        plt.savefig('Figures/Channel currents')
         plt.show()
+
+        # ax = plt.subplot()
+        # ax.plot(bigt, bigo,c='r',label='o')
+        # ax.plot(bigt, bigb,c='b',label='b')
+        # ax.plot(bigt, bigi6,c='orange',label='i6')
+        # ax.plot(bigt, bigc5,c='g',label='c5')
+        # ax.set_xlabel('Time (ms)')
+        # ax.set_ylabel('Fraction')
+        # plt.legend()
+        # plt.grid()
+        # plt.savefig('Figures/Markovian fraction')
+        # plt.show()
 
     # def lala(self):
     #     v = self.v
@@ -164,7 +180,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
         # ax.set_ylabel('Gating value')
         # ax.set_xlabel('Time (ms)')
-        # ax.set_title('Potassium and Sodium channels')
+        # ax.set_title('Potassium and Sodium channels using the Hodgking-Huxley model')
         # plt.legend()
         # plt.savefig('Figures/Ion channel gating variables with respect to time')
         # plt.show()
