@@ -38,12 +38,12 @@ class Markov:                               # Current through the sodium channel
         c2 = y[2]
         c3 = y[3]
         c4 = y[4]
-        I0 = y[5]
-        I1 = y[6]
-        I2 = y[7]
-        I3 = y[8]
-        I4 = y[9]
-        I5 = y[10]
+        i0 = y[5]
+        i1 = y[6]
+        i2 = y[7]
+        i3 = y[8]
+        i4 = y[9]
+        i5 = y[10]
         o  = y[11]
         b  = y[12] 
 
@@ -60,18 +60,18 @@ class Markov:                               # Current through the sodium channel
 
         der = np.zeros(13)
         
-        der[0] = u * I0 + β*c1 - c0*4*α - d*c0                                       # dC1/dt
-        der[1] = u/a*I1 + 2*β*c2+4*α*c0-(3*α+ β + d*a)*c1                            # dC2/dt
-        der[2] = (u/(a**2)) *I2 +3*β *c3 + 3*α *c1-(2*α +2*β + d* a**2)*c2           # dC3/dt
-        der[3] = (u/(a**3)) *I3+ 4*β *c4 +2*α *c2-(α + 3*β + d* a**3)*c3             # dC4/dt
-        der[4] = (u/(a**4)) *I4+ δ*o+ α*c3 -(γ +4*β + d*a**4)*c4                     # dC5/dt
-        der[5]  = d * c0 + 4*β/a *I1 - I0 *u - I0 *a*α                               # dI1/dt
-        der[6]  = d*a *c1 + 3*bav*I2 + aav*I0      - (u/a + 2*aav + 4*bav) *I1       # dI2/dt
-        der[7]  = d*a**2 *c2 + 2*bav*I3 + 2*aav*I1 - (u/a**2 + 3*aav + 3*bav) *I2    # dI3/dt
-        der[8]  = d*a**3 *c3 + bav*I4 + 3*aav*I2   - (u/a**3 + 4*aav + 2*bav) *I3    # dI4/dt
-        der[9]  = d*a**4 *c4 + δ*I5 + 4*aav*I3     - (u/a**4 + γ + bav) *I4          # dI5/dt
-        der[10] = n*o + γ*I4 - (f + δ) *I5                                           # dI6/dt
-        der[11] = γ* c4+ ξ*b+ f*I5 - (δ + n + ε)*o                                   # do/dt
+        der[0] = u * i0 + β*c1 - c0*4*α - d*c0                                       # dC1/dt
+        der[1] = u/a*i1 + 2*β*c2+4*α*c0-(3*α+ β + d*a)*c1                            # dC2/dt
+        der[2] = (u/(a**2)) *i2 +3*β *c3 + 3*α *c1-(2*α +2*β + d* a**2)*c2           # dC3/dt
+        der[3] = (u/(a**3)) *i3+ 4*β *c4 +2*α *c2-(α + 3*β + d* a**3)*c3             # dC4/dt
+        der[4] = (u/(a**4)) *i4+ δ*o+ α*c3 -(γ +4*β + d*a**4)*c4                     # dC5/dt
+        der[5]  = d * c0 + 4*β/a *i1 - i0 *u - i0 *a*α                               # di1/dt
+        der[6]  = d*a *c1 + 3*bav*i2 + aav*i0      - (u/a + 2*aav + 4*bav) *i1       # di2/dt
+        der[7]  = d*a**2 *c2 + 2*bav*i3 + 2*aav*i1 - (u/a**2 + 3*aav + 3*bav) *i2    # di3/dt
+        der[8]  = d*a**3 *c3 + bav*i4 + 3*aav*i2   - (u/a**3 + 4*aav + 2*bav) *i3    # di4/dt
+        der[9]  = d*a**4 *c4 + δ*i5 + 4*aav*i3     - (u/a**4 + γ + bav) *i4          # di5/dt
+        der[10] = n*o + γ*i4 - (f + δ) *i5                                           # dI6/dt
+        der[11] = γ* c4+ ξ*b+ f*i5 - (δ + n + ε)*o                                   # do/dt
         der[12] = o * ε - b*ξ                                                        # db/dt
 
         return der
@@ -84,7 +84,7 @@ class Markov:                               # Current through the sodium channel
         # self.bigt = np.array([])
         # self.bigo = np.array([])
         # self.bigb = np.array([])
-        # y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
+        # y = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.i0,self.i1,self.i2,self.i3,self.i4,self.i5,self.o,self.b])
 
         # j=0 # time step being self.tmax/len(v)
         # for i in range(0,len(v)):

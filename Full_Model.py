@@ -10,7 +10,7 @@ import time
 # K = Potassium
 
 start_time = time.time()    # Monitor performance
-tmax = 10                   # Duration of the simulation
+tmax = 35                   # Duration of the simulation
 i_na_trace = []             # Trace for graph purposes
 i_k_trace = []
 i_leak_trace = []
@@ -42,7 +42,6 @@ class Somatic_Voltage:
         i_na_trace.append(i_na)
         i_k_trace.append(i_k)
         i_leak_trace.append(i_l)
-
         deriv = (self.i_inj - i_na - i_k - i_l) / self.c_m                          # dV/dt
 
         return deriv
@@ -82,7 +81,7 @@ hh = HodgkinHuxley()
 
 somatic_voltage=Somatic_Voltage(g_na=120., g_k=36., g_l=0.3, c_m=1., v_init=-70., vna=115., vk=-12., vl=10.613, i_inj=10.)
 # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)              # Parameter values from Parameters2.py
-# somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,10.,45.,-88.,-88.,10.)             # Parameter values from research paper
+# somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,-50,45.,-88.,-88.,10.)             # Parameter values from research paper
 # somatic_voltage=Somatic_Voltage(36.,120.,0.3,1.,0.,-115.,12.,-10.613,10.)          # Parameter values from 2013 Action potential modelling
 
 v_initial = somatic_voltage.v_init
@@ -95,37 +94,46 @@ bigv=bigt=bigo=bigb=bigi6=bigc5= np.array([])
 
 i=0
 status = 0
-step = 0.025 
+step = 0.0025
+j = 10 
+enter = 1
+norm_c=1
+print_c = 1
+print_n = 100
 while i< tmax and status==0 :
+    # print(i)
+    result = solve_ivp(f, t_span=(i,i+step), y0=y,  method='BDF')
+    # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
+    if norm_c == 1:
+        # print(enter)
+        enter+=1 
+        y_norm = result.y[:,-1]
+        y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
+        norm_c= j
+    if print_c ==1:
+        print_c=print_n
+        bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
+        bigt  = np.concatenate((bigt,result.t))   
+        bigc5 = np.concatenate((bigc5,result.y[6]))     
+        bigi6 = np.concatenate((bigi6,result.y[12]))
+        bigo  = np.concatenate((bigo,result.y[13]))
+        bigb  = np.concatenate((bigb,result.y[14]))
 
-    result = solve_ivp(f, t_span=(i,i+step), y0=y, t_eval=(np.linspace(i, i+step, 100)), method='BDF') 
-    y_norm = result.y[:,-1]
-    y = normalize(y_norm)                                   # Normalise only the markov derivatives at every step
+    status = result.status                                       # -1: Integration step failed.
+    i+=step                                                      #  0: The solver successfully reached the end of t_span.
+    norm_c  -= 1
+    print_c -= 1  
 
-    # print(np.shape(result.y))                               # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
-
-    bigv = np.concatenate((bigv,result.y[0]))               # result.y[0] = result.y[0,:]
-    bigt = np.concatenate((bigt,result.t))   
-
-    bigc5 = np.concatenate((bigc5,result.y[6]))    
-    bigi6 = np.concatenate((bigi6,result.y[12]))
-    bigo = np.concatenate((bigo,result.y[13]))
-    bigb = np.concatenate((bigb,result.y[14]))
-
-
-    status = result.status                                     # -1: Integration step failed.
-    i+=step                                                    #  0: The solver successfully reached the end of t_span.
-
-# ax = plt.subplot()
-# ax.plot(bigt, bigo,c='r',label='o')
-# ax.plot(bigt, bigb,c='b',label='b')
-# ax.plot(bigt, bigi6,c='orange',label='i6')
-# ax.plot(bigt, bigc5,c='g',label='c5')
-# ax.set_xlabel('Time (ms)')
-# ax.set_ylabel('Fraction')
-# plt.legend()
-# plt.grid()
-# plt.show()
+ax = plt.subplot()
+ax.plot(bigt, bigo,c='r',label='o')
+ax.plot(bigt, bigb,c='b',label='b')
+ax.plot(bigt, bigi6,c='orange',label='i6')
+ax.plot(bigt, bigc5,c='g',label='c5')
+ax.set_xlabel('Time (ms)')
+ax.set_ylabel('Fraction')
+plt.legend()
+plt.grid()
+plt.show()
 
 ax = plt.subplot()
 ax.plot(bigt, bigv)
