@@ -42,185 +42,105 @@ class Somatic_Voltage:
         i_na_trace.append(i_na)
         i_k_trace.append(i_k)
         i_leak_trace.append(i_l)
+
         deriv = (self.i_inj - i_na - i_k - i_l) / self.c_m                          # dV/dt
-
         return deriv
-
 
 class All_Derivatives:
 
-    def __init__(self,somatic_voltage,mstates):
+    def __init__(self,somatic_voltage,mstates,hh):
 
-        self.hh = HodgkinHuxley() 
+        self.hh = hh
         self.somatic_voltage = somatic_voltage
         self.markov = mstates
 
-    def __call__(self,t,y): # t and y are called by the integrator
+    def __call__(self,t,y):     # t and y are called by the integrator
 
         v_soma   = y[0]
         n        = y[1]
         markov_y = y[2:15]
         markov_o = y[13]
 
-        dv = self.somatic_voltage.derivative(v_soma,markov_o,n)         # Call dV/dt and pass the parameters
-        
-        dn = (self.hh.alpha_n(v_soma) * (1 - n)) - (self.hh.beta_n(v_soma) * n)         # dn/dt
-
+        dv = self.somatic_voltage.derivative(v_soma,markov_o,n)                                                                 # Call dV/dt and pass the parameters
+        dn = (self.hh.alpha_n(v_soma) * (1 - n)) - (self.hh.beta_n(v_soma) * n)                                                 # dn/dt
         dm = self.markov.derivatives(markov_y,self.markov.alpha(v_soma),self.markov.beta(v_soma),self.markov.ksi(v_soma))
 
         all_derivatives = np.append([dv,dn],dm)
         return all_derivatives
 
-def normalize(y):
-    norm = y[2:15]/np.sum(y[2:15])      # normalise only the markov results from y[2] to y[15] but return the whole y
-    y[2:15] = norm
-    return y
+class Model:
+    def Main(self):
+        def normalize(y):
 
-mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005, a=3.3267)  # call markovian scheme to get the markov derivatives
-hh = HodgkinHuxley() 
+            norm = y[2:15]/np.sum(y[2:15])      # normalise only the markov results from y[2] to y[15]
+            y[2:15] = norm
+            return y
 
-somatic_voltage=Somatic_Voltage(g_na=120., g_k=36., g_l=0.3, c_m=1., v_init=-70., vna=115., vk=-12., vl=10.613, i_inj=10.)
-# somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)              # Parameter values from Parameters2.py
-# somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,-50,45.,-88.,-88.,10.)             # Parameter values from research paper
-# somatic_voltage=Somatic_Voltage(36.,120.,0.3,1.,0.,-115.,12.,-10.613,10.)          # Parameter values from 2013 Action potential modelling
+        mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005, a=3.3267) 
+        hh = HodgkinHuxley() 
 
-v_initial = somatic_voltage.v_init
+        somatic_voltage=Somatic_Voltage(g_na=60., g_k=100., g_l=2., c_m=1., v_init=-75., vna=115., vk=-12., vl=-30, i_inj=10.)
+        # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)              # Parameter values from Parameters2.py
+        # somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,-50,45.,-88.,-88.,10.)             # Parameter values from research paper
 
-f = All_Derivatives(somatic_voltage,mstates)  # All derivatives in one function
+        v_initial = somatic_voltage.v_init
 
-# Initialisation
-y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
-bigv=bigt=bigo=bigb=bigi6=bigc5= np.array([])
+        f = All_Derivatives(somatic_voltage,mstates,hh)  # All derivatives in one function
 
-i=0
-status = 0
-step = 0.0025
-j = 10 
-enter = 1
-norm_c=1
-print_c = 1
-print_n = 100
-while i< tmax and status==0 :
-    # print(i)
-    result = solve_ivp(f, t_span=(i,i+step), y0=y,  method='BDF')
-    # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
-    if norm_c == 1:
-        # print(enter)
-        enter+=1 
-        y_norm = result.y[:,-1]
-        y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
-        norm_c= j
-    if print_c ==1:
-        print_c=print_n
-        bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
-        bigt  = np.concatenate((bigt,result.t))   
-        bigc5 = np.concatenate((bigc5,result.y[6]))     
-        bigi6 = np.concatenate((bigi6,result.y[12]))
-        bigo  = np.concatenate((bigo,result.y[13]))
-        bigb  = np.concatenate((bigb,result.y[14]))
+        # Initialisation
+        y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
+        bigv=bigt=bigo=bigb=bigi6=bigc5 = np.array([])
+        i = status = 0
+        step = 0.0025
+        norm_const = print_const = 1
+        j = 10 
+        print_n = 100
 
-    status = result.status                                       # -1: Integration step failed.
-    i+=step                                                      #  0: The solver successfully reached the end of t_span.
-    norm_c  -= 1
-    print_c -= 1  
+        while i< tmax and status==0 :
 
-ax = plt.subplot()
-ax.plot(bigt, bigo,c='r',label='o')
-ax.plot(bigt, bigb,c='b',label='b')
-ax.plot(bigt, bigi6,c='orange',label='i6')
-ax.plot(bigt, bigc5,c='g',label='c5')
-ax.set_xlabel('Time (ms)')
-ax.set_ylabel('Fraction')
-plt.legend()
-plt.grid()
-plt.show()
+            result = solve_ivp(f, t_span=(i,i+step), y0=y, method='BDF')
+            # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
+            if norm_const == 1:
+                y_norm = result.y[:,-1]
+                y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
+                norm_const= j
 
-ax = plt.subplot()
-ax.plot(bigt, bigv)
-ax.set_xlabel('Time (ms)')
-ax.set_ylabel('Membrane potential (mV)')
-ax.set_title('Neuron potential')
-plt.grid()
-plt.savefig('Figures/Neuron Potential Full model')
-plt.show()
+            if print_const ==1:
+                bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
+                bigt  = np.concatenate((bigt,result.t))   
+                bigc5 = np.concatenate((bigc5,result.y[6]))     
+                bigi6 = np.concatenate((bigi6,result.y[12]))
+                bigo  = np.concatenate((bigo,result.y[13]))
+                bigb  = np.concatenate((bigb,result.y[14]))
+                print_const=print_n
+
+            status = result.status                                       # -1: Integration step failed.
+            i+=step                                                      #  0: The solver successfully reached the end of t_span.
+            norm_const      -= 1
+            print_const     -= 1  
+
+        ax = plt.subplot()
+        ax.plot(bigt, bigo,c='r',label='o')
+        ax.plot(bigt, bigb,c='b',label='b')
+        ax.plot(bigt, bigi6,c='orange',label='i6')
+        ax.plot(bigt, bigc5,c='g',label='c5')
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Fraction')
+        plt.legend()
+        plt.grid()
+        plt.show()
+
+        ax = plt.subplot()
+        ax.plot(bigt, bigv)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Membrane potential (mV)')
+        ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Figures/Neuron Potential Full model')
+        plt.show()
 
 # hh.graphs(bigv,bigt,i_na_trace,i_k_trace,i_leak_trace,bigo,bigb,bigi6,bigc5)
-# if __name__ == '__main__':
-#     runner = FullModel()
-#     runner.Main()
-
+if __name__ == '__main__':
+    runner = Model()
+    runner.Main()
 print("--- %s seconds ---" % (time.time() - start_time))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#     def Main(self):
-#         v = self.v_init
-
-#         bigy = np.array([])
-#         bigt = np.array([])
-
-#         my = np.array([self.c0,self.c1,self.c2,self.c3,self.c4,self.I0,self.I1,self.I2,self.I3,self.I4,self.I5,self.o,self.b])
-#         y = np.array([v, self.hh.n_inf(v)], dtype= 'float64')
-        
-#         for i in range(0,tmax):
-#             my = self.markovian.mark_intgr(v,i,my)     # shape(13,)
-#             o = my[11]
-#             result = solve_ivp(self.voltage_derivatives, t_span=(i,i+1), y0=y, method='BDF', args=(self.hh.i_inj, o))
-#             print(np.shape(result.y))
-
-#             bigy = np.concatenate((bigy,result.y[0,:]))   
-#             bigt = np.concatenate((bigt,result.t))
-
-#             v = result.y[0,:]
-#             # print(v)
-#             # print(np.shape(v))
-#             y = np.squeeze(np.array([v, self.hh.n_inf(v)], dtype= 'float64'))
-#         # print(y)
-
-#         ax = plt.subplot()
-#         ax.plot(bigt, bigy)
-#         ax.set_xlabel('Time (ms)')
-#         ax.set_ylabel('Membrane potential (mV)')
-#         ax.set_title('Neuron potential')
-#         plt.grid()
-#         plt.savefig('Figures/Neuron Potential Full model')
-#         plt.show()
- 
-
-# if __name__ == '__main__':
-#     runner = FullModel()
-#     runner.Main()
-#     print("--- %s seconds ---" % (time.time() - start_time))

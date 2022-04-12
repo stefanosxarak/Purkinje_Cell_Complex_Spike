@@ -2,28 +2,8 @@ from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
-import time
-
-start_time = time.time()
-
 class HodgkinHuxley:      # Hodgkin - Huxley model
-    def __init__(self):
-        ### ALL UNITS NEED TO BE IN S.I. ###
-       
-        # print("Please Enter all the values in default units (graphs will automatically convert to S.I. units)")
-        # self.g_na = float(input("Enter the value of gNa: "))                                   # Average sodoum channel conductance per unit area
-        # self.g_k  = float(input("Enter the value of gK: "))                                    # Average potassium channel conductance per unit area
-        # self.g_l  = float(input("Enter the value of gl: "))                                    # Average leak channel conductance per unit area
-        # self.C_m  = float(input("Enter the value of membrane capacitance c_m: "))              # Membrane capacitance per unit area
-        # self.v    = float(input("Enter the value of the membrane potential v: "))              # v is the membrane potential
-        # self.vna  = float(input("Enter the value of vNa: "))                                   # Potassium potential
-        # self.vk   = float(input("Enter the value of vK: "))                                    # Sodium potential
-        # self.vl   = float(input("Enter the value of vl: "))                                    # Leak potential
-        # self.vthresh   = float(input("Enter the value of voltage threshold: "))                # Voltage threshold for spikes
-        # self.tmax = float(input("Enter the total duration of simulation: "))
-        # self.i_inj   = float(input("Enter the value of Input current i_inj: "))                # Input current
-
-                
+    def __init__(self):        
         self.g_na = 120.               
         self.g_k  = 36.                      
         self.g_l  = 0.3                   
@@ -78,51 +58,51 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
     def h_inf(self,v):
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
 
-    def frequency(self,y):
-        firing_rate = []
-        self.max_I = []
-        self.var_inj = [8,23,25,52,115,215]          # np.linspace(0, self.i_inj, 100)
-        spikes = 0               
+    # def frequency(self,y):
+    #     firing_rate = []
+    #     self.max_I = []
+    #     self.var_inj = [8,23,25,52,115,215]          # np.linspace(0, self.i_inj, 100)
+    #     spikes = 0               
 
-        for i in range(len(self.var_inj)):
-            spikes = 0
-            result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
+    #     for i in range(len(self.var_inj)):
+    #         spikes = 0
+    #         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
 
-            for n in range(len(self.t)):
-                if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        # OPTIMISE FOR loops with NUMPY or list comprehensions
-                    spikes += 1
-            firing_rate.append(spikes/self.tmax)
+    #         for n in range(len(self.t)):
+    #             if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        # OPTIMISE FOR loops with NUMPY or list comprehensions
+    #                 spikes += 1
+    #         firing_rate.append(spikes/self.tmax)
 
 
-        for i in range(len(self.var_inj)):
-            if firing_rate[i] ==0:
-                self.max_I.append(self.var_inj[i])          # threshold input current.
-        print(max(self.max_I))
+    #     for i in range(len(self.var_inj)):
+    #         if firing_rate[i] ==0:
+    #             self.max_I.append(self.var_inj[i])          # threshold input current.
+    #     print(max(self.max_I))
 
-        return firing_rate
+    #     return firing_rate
    
-    def derivatives(self,t,y,inj):
-        der = np.zeros(4)
-        v = y[0]
-        n = y[1]
-        m = y[2]
-        h = y[3]
+    # def derivatives(self,t,y,inj):
+    #     der = np.zeros(4)
+    #     v = y[0]
+    #     n = y[1]
+    #     m = y[2]
+    #     h = y[3]
 
-        GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
-        GK = self.g_k * n**4.0
-        GL = self.g_l
+    #     GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
+    #     GK = self.g_k * n**4.0
+    #     GL = self.g_l
 
-        i_na = GNa * (v - self.vna )
-        i_k = GK * (v - self.vk )
-        i_l = GL * (v - self.vl )
+    #     i_na = GNa * (v - self.vna )
+    #     i_k = GK * (v - self.vk )
+    #     i_l = GL * (v - self.vl )
 
 
-        der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
-        der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
-        der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
-        der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
+    #     der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
+    #     der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
+    #     der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
+    #     der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
 
-        return der
+    #     return der
 
     def graphs(self,v,t,ina,ik,il,bigo,bigb,bigi6,bigc5):
         # ADD injection current graph(either constant or the F-I curve)
