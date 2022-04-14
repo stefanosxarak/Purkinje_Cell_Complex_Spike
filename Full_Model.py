@@ -1,13 +1,9 @@
-from Units import *
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from Markov_Model import *
 from HH_model import *
 import time
-
-# Na = Sodium
-# K = Potassium
 
 start_time = time.time()    # Monitor performance
 tmax = 30                   # Duration of the simulation
@@ -80,7 +76,6 @@ class Model:
         hh = HodgkinHuxley() 
 
         # somatic_voltage=Somatic_Voltage(g_na=60., g_k=200., g_l=2., c_m=1., v_init=-50., vna=115., vk=-88., vl=-30, i_inj=10.)
-        # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)                                                              # Parameter values from Parameters2.py
         somatic_voltage=Somatic_Voltage(g_na=47.2, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values from research paper
 
         v_initial = somatic_voltage.v_init
@@ -97,12 +92,11 @@ class Model:
         while i< tmax and status==0 :
 
             result = solve_ivp(f, t_span=(i,i+step), y0=y, method='BDF')
-            # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
             y_norm = result.y[:,-1]
-            y = normalize(y_norm)                                            # Normalise only the markov derivatives at every step
+            y = normalize(y_norm)                                          
 
             if print_const == 1:
-                bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
+                bigv  = np.concatenate((bigv,result.y[0]))                       
                 bigt  = np.concatenate((bigt,result.t))   
                 bigc5 = np.concatenate((bigc5,result.y[6]))     
                 bigi6 = np.concatenate((bigi6,result.y[12]))
@@ -114,16 +108,16 @@ class Model:
             i += step                                                      #  0: The solver successfully reached the end of t_span.
             print_const -= 1  
 
-        ax = plt.subplot()
-        ax.plot(bigt, bigo,c='r',label='o')
-        ax.plot(bigt, bigb,c='b',label='b')
-        ax.plot(bigt, bigi6,c='orange',label='i6')
-        ax.plot(bigt, bigc5,c='g',label='c5')
-        ax.set_xlabel('Time (ms)')
-        ax.set_ylabel('Fraction')
-        plt.legend()
-        plt.grid()
-        plt.show()
+        # ax = plt.subplot()
+        # ax.plot(bigt, bigo,c='r',label='o')
+        # ax.plot(bigt, bigb,c='b',label='b')
+        # ax.plot(bigt, bigi6,c='orange',label='i6')
+        # ax.plot(bigt, bigc5,c='g',label='c5')
+        # ax.set_xlabel('Time (ms)')
+        # ax.set_ylabel('Fraction')
+        # plt.legend()
+        # plt.grid()
+        # plt.show()
 
         ax = plt.subplot()
         ax.plot(bigt, bigv)
