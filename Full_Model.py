@@ -10,7 +10,7 @@ import time
 # K = Potassium
 
 start_time = time.time()    # Monitor performance
-tmax = 35                   # Duration of the simulation
+tmax = 30                   # Duration of the simulation
 i_na_trace = []             # Trace for graph purposes
 i_k_trace = []
 i_leak_trace = []
@@ -80,8 +80,8 @@ class Model:
         hh = HodgkinHuxley() 
 
         # somatic_voltage=Somatic_Voltage(g_na=60., g_k=200., g_l=2., c_m=1., v_init=-50., vna=115., vk=-88., vl=-30, i_inj=10.)
-        # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)              # Parameter values from Parameters2.py
-        somatic_voltage=Somatic_Voltage(60.,200.,2.,1.,-50,45.,-88.,-88.,40.)             # Parameter values from research paper
+        # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)                                                              # Parameter values from Parameters2.py
+        somatic_voltage=Somatic_Voltage(g_na=47.2, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values from research paper
 
         v_initial = somatic_voltage.v_init
 
@@ -92,29 +92,27 @@ class Model:
         bigv=bigt=bigo=bigb=bigi6=bigc5 = np.array([])
         i = status = 0
         step = 0.0025
-        norm_const = print_const = 1
-        j = 1
-        step = step*j
+        print_const = 1
         print_n = 10
         while i< tmax and status==0 :
 
             result = solve_ivp(f, t_span=(i,i+step), y0=y, method='BDF')
             # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
             y_norm = result.y[:,-1]
-            y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
+            y = normalize(y_norm)                                            # Normalise only the markov derivatives at every step
 
-            if print_const ==1:
+            if print_const == 1:
                 bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
                 bigt  = np.concatenate((bigt,result.t))   
                 bigc5 = np.concatenate((bigc5,result.y[6]))     
                 bigi6 = np.concatenate((bigi6,result.y[12]))
                 bigo  = np.concatenate((bigo,result.y[13]))
                 bigb  = np.concatenate((bigb,result.y[14]))
-                print_const=print_n
+                print_const = print_n
 
-            status = result.status                                       # -1: Integration step failed.
-            i+=step                                                      #  0: The solver successfully reached the end of t_span.
-            print_const     -= 1  
+            status = result.status                                         # -1: Integration step failed.
+            i += step                                                      #  0: The solver successfully reached the end of t_span.
+            print_const -= 1  
 
         ax = plt.subplot()
         ax.plot(bigt, bigo,c='r',label='o')
