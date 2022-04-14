@@ -79,9 +79,9 @@ class Model:
         mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005, a=3.3267) 
         hh = HodgkinHuxley() 
 
-        somatic_voltage=Somatic_Voltage(g_na=60., g_k=200., g_l=2., c_m=1., v_init=-75., vna=115., vk=-88., vl=-30, i_inj=10.)
+        # somatic_voltage=Somatic_Voltage(g_na=60., g_k=200., g_l=2., c_m=1., v_init=-50., vna=115., vk=-88., vl=-30, i_inj=10.)
         # somatic_voltage=Somatic_Voltage(105.,15.,2.,1.,-70.,45.,-88.,-88,10.)              # Parameter values from Parameters2.py
-        # somatic_voltage=Somatic_Voltage(47.2,200.,2.,1.,-50,45.,-88.,-88.,10.)             # Parameter values from research paper
+        somatic_voltage=Somatic_Voltage(60.,200.,2.,1.,-50,45.,-88.,-88.,40.)             # Parameter values from research paper
 
         v_initial = somatic_voltage.v_init
 
@@ -93,17 +93,15 @@ class Model:
         i = status = 0
         step = 0.0025
         norm_const = print_const = 1
-        j = 7 
-        print_n = 100
-
+        j = 1
+        step = step*j
+        print_n = 10
         while i< tmax and status==0 :
 
             result = solve_ivp(f, t_span=(i,i+step), y0=y, method='BDF')
             # print(np.shape(result.y))                                      # (15,len(t_eval)) 15 derivatives and the length of t_eval if one exists
-            if norm_const == 1:
-                y_norm = result.y[:,-1]
-                y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
-                norm_const= j
+            y_norm = result.y[:,-1]
+            y = normalize(y_norm)                                        # Normalise only the markov derivatives at every step
 
             if print_const ==1:
                 bigv  = np.concatenate((bigv,result.y[0]))                       # result.y[0] = result.y[0,:]
@@ -116,7 +114,6 @@ class Model:
 
             status = result.status                                       # -1: Integration step failed.
             i+=step                                                      #  0: The solver successfully reached the end of t_span.
-            norm_const      -= 1
             print_const     -= 1  
 
         ax = plt.subplot()
