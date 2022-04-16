@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
-class HodgkinHuxley:      # Hodgkin - Huxley model
+
+class HodgkinHuxley:      # Hodgkin-Huxley model
+
     def __init__(self):        
+        #   Initial parameters as stated in Hodgkin-Huxley(1952)
+        #   Units are not in S.I.
         self.g_na = 120.               
         self.g_k  = 36.                      
         self.g_l  = 0.3                   
@@ -11,10 +14,10 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         self.vna  = 115.                        
         self.vk   = -12.                        
         self.vl   = 10.613   
-        self.vthresh = 55.                      
+        self.vthresh = 55.
+        self.i_inj = 10.   
+
         self.tmax = 35.   
-        self.i_inj = 10.   # TODO: ask about this 10**(-2) conversion is done in cm2?
-        
         self.t  = np.linspace(0, self.tmax, 100)
 
     def alpha_n(self,v):
@@ -23,11 +26,11 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         denom = (np.exp((10. - v) / 10.) - 1.)
         if nom == 0 and denom == 0 :
             return 0.1
-        # return (0.22 * np.exp( (v-30)/ 26.5))      # Research paper equation
+        # return (0.22 * np.exp( (v-30.)/ 26.5))      # Research paper equation
         return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
-        # return (0.22 * np.exp(- (v-30)/ 26.5))     # Research paper equation
+        # return (0.22 * np.exp(- (v-30.)/ 26.5))     # Research paper equation
         return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
@@ -43,14 +46,12 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
     def alpha_h(self,v):
         return (0.07 * np.exp(- v/ 20.))
 
-    # h is replaced by the markovian scheme
     def beta_h(self,v):
         return (1. / (np.exp((30. -v) / 10.) + 1.))
 
     def n_inf(self,v):
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
 
-    # m is replaced by the markovian scheme
     def m_inf(self,v):
         return self.alpha_m(v) / (self.alpha_m(v) + self.beta_m(v))
 
@@ -104,7 +105,7 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
     #     return der
 
     def graphs(self,v,t,ina,ik,il,bigo,bigb,bigi6,bigc5):
-        # ADD injection current graph(either constant or the F-I curve)
+        # ADD injection current graph (either constant or the F-I curve)
         # ADD Channel conductances
         ax = plt.subplot()
         ax.plot(t, ina, 'b', label='Potassium Current')
@@ -114,18 +115,6 @@ class HodgkinHuxley:      # Hodgkin - Huxley model
         plt.grid()
         plt.savefig('Figures/Channel currents')
         plt.show()
-
-        # ax = plt.subplot()
-        # ax.plot(bigt, bigo,c='r',label='o')
-        # ax.plot(bigt, bigb,c='b',label='b')
-        # ax.plot(bigt, bigi6,c='orange',label='i6')
-        # ax.plot(bigt, bigc5,c='g',label='c5')
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Fraction')
-        # plt.legend()
-        # plt.grid()
-        # plt.savefig('Figures/Markovian fraction')
-        # plt.show()
 
     # def lala(self):
     #     v = self.v

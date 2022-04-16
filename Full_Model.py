@@ -72,14 +72,12 @@ class Model:
             y[2:15] = norm
             return y
 
-        mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005, a=3.3267) 
+        mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005) 
         hh = HodgkinHuxley() 
 
-        # somatic_voltage=Somatic_Voltage(g_na=60., g_k=200., g_l=2., c_m=1., v_init=-50., vna=115., vk=-88., vl=-30, i_inj=10.)
-        somatic_voltage=Somatic_Voltage(g_na=47.2, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values from research paper
+        somatic_voltage=Somatic_Voltage(g_na=47.5, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values from research paper
 
         v_initial = somatic_voltage.v_init
-
         f = All_Derivatives(somatic_voltage,mstates,hh)  # All derivatives in one function
 
         # Initialisation
@@ -96,12 +94,12 @@ class Model:
             y = normalize(y_norm)                                          
 
             if print_const == 1:
-                bigv  = np.concatenate((bigv,result.y[0]))                       
-                bigt  = np.concatenate((bigt,result.t))   
-                bigc5 = np.concatenate((bigc5,result.y[6]))     
-                bigi6 = np.concatenate((bigi6,result.y[12]))
-                bigo  = np.concatenate((bigo,result.y[13]))
-                bigb  = np.concatenate((bigb,result.y[14]))
+                bigv  = np.concatenate((bigv, result.y[0]))                       
+                bigt  = np.concatenate((bigt, result.t))   
+                bigc5 = np.concatenate((bigc5, result.y[6]))     
+                bigi6 = np.concatenate((bigi6, result.y[12]))
+                bigo  = np.concatenate((bigo, result.y[13]))
+                bigb  = np.concatenate((bigb, result.y[14]))
                 print_const = print_n
 
             status = result.status                                         # -1: Integration step failed.

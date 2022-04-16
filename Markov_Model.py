@@ -1,9 +1,8 @@
 import numpy as np
-from HH_model import *
 
 class Markov:                               # Current through the sodium channel is described using a Markovian Scheme
 
-    def __init__(self,γ,δ,ε,d,u,n,f,a):    
+    def __init__(self,γ,δ,ε,d,u,n,f):    
 
         self.γ = γ       # m*s**(-1)
         self.δ = δ       # m*s**(-1)
@@ -12,7 +11,6 @@ class Markov:                               # Current through the sodium channel
         self.u = u       # m*s**(-1)
         self.n = n       # m*s**(-1)
         self.f = f       # m*s**(-1)
-        self.a = a       # m*s**(-1)
 
     def alpha(self,v):
 
@@ -48,11 +46,11 @@ class Markov:                               # Current through the sodium channel
         d = self.d       
         u = self.u       
         n = self.n       
-        f = self.f       
-        a = self.a
+        f = self.f 
+        a = ((u/d)/(f/n))**(1/8) 
+
         aav=α*a
         bav=α/a
-
         der = np.zeros(13)
         
         der[0]  = u * i0 + β*c1 - c0*4*α - d*c0                                       # dC1/dt
