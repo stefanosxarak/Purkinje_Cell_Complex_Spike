@@ -26,39 +26,50 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         denom = (np.exp((10. - v) / 10.) - 1.)
         if nom == 0 and denom == 0 :
             return 0.1
+
         # return (0.22 * np.exp( (v-30.)/ 26.5))      # Research paper equation
         return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
+
         # return (0.22 * np.exp(- (v-30.)/ 26.5))     # Research paper equation
         return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
+
         nom = 0.1  * (25. - v)
         denom = (np.exp((25. - v) / 10.) - 1.)
         if nom == 0 and denom == 0 :
             return (1.5/(-1 + np.exp(3./2.)))
+
         return (nom / denom)
 
     def beta_m(self,v):
+
         return (4. * np.exp(- v/ 18.))
 
     def alpha_h(self,v):
+
         return (0.07 * np.exp(- v/ 20.))
 
     def beta_h(self,v):
+
         return (1. / (np.exp((30. -v) / 10.) + 1.))
 
     def n_inf(self,v):
+
         return self.alpha_n(v) / (self.alpha_n(v) + self.beta_n(v))
 
     def m_inf(self,v):
+
         return self.alpha_m(v) / (self.alpha_m(v) + self.beta_m(v))
 
     def h_inf(self,v):
+
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
 
     # def frequency(self,y):
+
     #     firing_rate = []
     #     self.max_I = []
     #     self.var_inj = [8,23,25,52,115,215]          # np.linspace(0, self.i_inj, 100)
@@ -82,6 +93,7 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
     #     return firing_rate
    
     # def derivatives(self,t,y,inj):
+
     #     der = np.zeros(4)
     #     v = y[0]
     #     n = y[1]
@@ -104,19 +116,8 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
 
     #     return der
 
-    def graphs(self,v,t,ina,ik,il,bigo,bigb,bigi6,bigc5):
-        # ADD injection current graph (either constant or the F-I curve)
-        # ADD Channel conductances
-        ax = plt.subplot()
-        ax.plot(t, ina, 'b', label='Potassium Current')
-        ax.plot(t, ik,  'g', label='Sodium Current')
-        ax.plot(t, il,  'r', label='Leak Current')
-        ax.set_title('Channel currents')
-        plt.grid()
-        plt.savefig('Figures/Channel currents')
-        plt.show()
-
-    # def lala(self):
+    # def run(self):
+    
     #     v = self.v
     #     t = self.t
 
