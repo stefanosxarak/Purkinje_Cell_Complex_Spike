@@ -80,6 +80,11 @@ class Model:
         v_initial = somatic_voltage.v_init
         f = All_Derivatives(somatic_voltage,mstates,hh)  # All derivatives in one function
 
+
+        # c1_initial=mstates.beta(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
+        # c2_initial=4*mstates.alpha(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
+        # mstates.alpha(v_initial),mstates.beta(v_initial)
+
         # Initialisation
         y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
         bigv=bigt=bigo=bigb=bigi6=bigc5 = np.array([])
@@ -106,14 +111,14 @@ class Model:
             i += step                                                      #  0: The solver successfully reached the end of t_span.
             print_const -= 1  
 
-        # ax = plt.subplot()
-        # ax.plot(bigt, bigv)
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Membrane potential (mV)')
-        # ax.set_title('Neuron potential')
-        # plt.grid()
-        # plt.savefig('Figures/Neuron Potential Full model')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(bigt, bigv)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Membrane potential (mV)')
+        ax.set_title('Neuron potential')
+        plt.grid()
+        plt.savefig('Figures/Neuron Potential Full model')
+        plt.show()
 
         def graphs():
             ax = plt.subplot()
