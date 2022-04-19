@@ -1,6 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# from scipy.integrate import solve_ivp
 
+# i_na_trace = []       # Trace for graph purposes
+# i_k_trace = []
+# i_leak_trace = []
 class HodgkinHuxley:      # Hodgkin-Huxley model
 
     def __init__(self):        
@@ -18,7 +22,7 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         self.i_inj = 10.   
 
         self.tmax = 35.   
-        self.t  = np.linspace(0, self.tmax, 100)
+        self.t  = np.linspace(0, self.tmax, 1000)
 
     def alpha_n(self,v):
 
@@ -72,15 +76,14 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
 
     #     firing_rate = []
     #     self.max_I = []
-    #     self.var_inj = [8,23,25,52,115,215]          # np.linspace(0, self.i_inj, 100)
+    #     self.var_inj = np.linspace(0, self.i_inj, len(self.t))  
     #     spikes = 0               
-
     #     for i in range(len(self.var_inj)):
     #         spikes = 0
-    #         result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.var_inj[i],),method='BDF') 
-
+    #         result = solve_ivp(self.derivatives, t_span=(i,i/self.tmax), y0=y, args=(self.var_inj[i],),method='BDF') 
+    #         y = np.array([result.y[0,i], self.n_inf(result.y[0,i]), self.m_inf(result.y[0,i]), self.h_inf(result.y[0,i])], dtype= 'float64')
     #         for n in range(len(self.t)):
-    #             if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        # OPTIMISE FOR loops with NUMPY or list comprehensions
+    #             if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        
     #                 spikes += 1
     #         firing_rate.append(spikes/self.tmax)
 
@@ -108,6 +111,9 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
     #     i_k = GK * (v - self.vk )
     #     i_l = GL * (v - self.vl )
 
+    #     i_na_trace.append(-i_na)
+    #     i_k_trace.append(-i_k)
+    #     i_leak_trace.append(-i_l)
 
     #     der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
     #     der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
@@ -123,52 +129,62 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
 
     #     y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
-    #     result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=self.t, args=(self.i_inj,)) 
+    #     result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=t, args=(self.i_inj,)) 
         
     #     vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
     #     n = result.y[1,:]
     #     m = result.y[2,:]
     #     h = result.y[3,:]
 
-        # firing_rate = self.frequency(y)
+        # err = np.abs((max(vp) - 1.05400725e+02)/(1.05400725e+02) *100)
+        # print("The error percentage is:", err,"%")
 
-        # Markov.error(self,105.40*milli,max(vp))   #compare simulation peak height with actual paper(careful with parameters)
 
         # ax = plt.subplot()
         # ax.plot(t, vp)
         # ax.set_xlabel('Time (ms)')
         # ax.set_ylabel('Membrane potential (mV)')
         # ax.set_title('Neuron potential')
-        # plt.grid()
         # plt.savefig('Figures/Neuron Potential')
         # plt.show()
 
         # ax = plt.subplot()
         # ax.plot(t, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t, m, 'g', label='Sodium (Opening): m')
+        # ax.plot(t, m, 'g', label='Sodium Channel (Opening): m')
         # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
         # ax.set_ylabel('Gating value')
         # ax.set_xlabel('Time (ms)')
-        # ax.set_title('Potassium and Sodium channels using the Hodgking-Huxley model')
-        # plt.legend()
+        # ax.set_title('Ion gating variables')
         # plt.savefig('Figures/Ion channel gating variables with respect to time')
         # plt.show()
 
-
-        # # Trajectories with limit cycles
+        # Trajectories with limit cycles
         # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='V - n')
-        # ax.plot(vp, m, 'g', label='V - m')
-        # ax.plot(vp, h, 'r', label='V - h')
+        # ax.plot(vp, n, 'b', label='n(t)')
+        # ax.plot(vp, m, 'g', label='m(t)')
+        # ax.plot(vp, h, 'r', label='h(t)')
         # ax.set_ylabel('Gating value')
         # ax.set_xlabel('Voltage (mV)')
-        # ax.set_title('Limit cycles')
-        # plt.legend()
+        # ax.set_title('Limit cycles of the gating equations')
+        # plt.legend( loc='upper left')
         # plt.savefig('Figures/Limit Cycles')
         # plt.show()
-        # return vp
+
+        # ax = plt.subplot()
+        # t  = np.linspace(0, self.tmax, len(i_na_trace))
+        # ax.plot(t, i_na_trace, 'b', label='Potassium Current')
+        # ax.plot(t, i_k_trace,  'g', label='Sodium Current')
+        # ax.plot(t, i_leak_trace,  'r', label='Leak Current')
+        # ax.set_title('Channel currents')
+        # ax.set_xlabel('Time (ms)')
+        # ax.set_ylabel('Current (uA)')
+        # plt.grid()
+        # plt.legend()
+        # plt.savefig('Figures/Channel currents')
+        # plt.show()
 
         # F-I curve
+        # firing_rate = self.frequency(y)
         # ax = plt.subplot()
         # ax.plot(self.var_inj, firing_rate)
         # ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
@@ -178,3 +194,7 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         # plt.legend()
         # plt.savefig('f-I Curve')
         # plt.show()
+
+# if __name__ == '__main__':
+#     runner = HodgkinHuxley()
+#     runner.run()
