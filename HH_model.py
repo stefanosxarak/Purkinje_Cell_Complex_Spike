@@ -2,9 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from scipy.integrate import solve_ivp
 
-# i_na_trace = []       # Trace for graph purposes
-# i_k_trace = []
-# i_leak_trace = []
 class HodgkinHuxley:      # Hodgkin-Huxley model
 
     def __init__(self):        
@@ -22,7 +19,7 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         self.i_inj = 10.   
 
         self.tmax = 35.   
-        self.t  = np.linspace(0, self.tmax, 1000)
+        self.t  = np.linspace(0, self.tmax, 100000)
 
     def alpha_n(self,v):
 
@@ -31,12 +28,10 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         if nom == 0 and denom == 0 :
             return 0.1
 
-        # return (0.22 * np.exp( (v-30.)/ 26.5))      # Research paper equation
         return (nom / denom)                         # Wiki equation(original HH)
 
     def beta_n(self,v):
 
-        # return (0.22 * np.exp(- (v-30.)/ 26.5))     # Research paper equation
         return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
 
     def alpha_m(self,v):
@@ -87,7 +82,6 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
     #                 spikes += 1
     #         firing_rate.append(spikes/self.tmax)
 
-
     #     for i in range(len(self.var_inj)):
     #         if firing_rate[i] ==0:
     #             self.max_I.append(self.var_inj[i])          # threshold input current.
@@ -95,50 +89,45 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
 
     #     return firing_rate
    
-    # def derivatives(self,t,y,inj):
+    def derivatives(self,t,y,inj):
 
-    #     der = np.zeros(4)
-    #     v = y[0]
-    #     n = y[1]
-    #     m = y[2]
-    #     h = y[3]
+        der = np.zeros(4)
+        v = y[0]
+        n = y[1]
+        m = y[2]
+        h = y[3]
 
-    #     GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
-    #     GK = self.g_k * n**4.0
-    #     GL = self.g_l
+        GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
+        GK = self.g_k * n**4.0
+        GL = self.g_l
 
-    #     i_na = GNa * (v - self.vna )
-    #     i_k = GK * (v - self.vk )
-    #     i_l = GL * (v - self.vl )
+        i_na = GNa * (v - self.vna )
+        i_k = GK * (v - self.vk )
+        i_l = GL * (v - self.vl )
 
-    #     i_na_trace.append(-i_na)
-    #     i_k_trace.append(-i_k)
-    #     i_leak_trace.append(-i_l)
+        der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
+        der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
+        der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
+        der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
 
-    #     der[0] = (inj - i_na - i_k - i_l) / self.c_m                   # dv/dt
-    #     der[1] = (self.alpha_n(v) * (1 - n)) - (self.beta_n(v) * n)    # dn/dt
-    #     der[2] = (self.alpha_m(v) * (1 - m)) - (self.beta_m(v) * m)    # dm/dt
-    #     der[3] = (self.alpha_h(v) * (1 - h)) - (self.beta_h(v) * h)    # dh/dt
+        return der
 
-    #     return der
-
-    # def run(self):
+    def run(self):
     
-    #     v = self.v
-    #     t = self.t
+        v = self.v
+        t = self.t
 
-    #     y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
+        y = np.array([v, self.n_inf(v), self.m_inf(v), self.h_inf(v)], dtype= 'float64')
 
-    #     result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=t, args=(self.i_inj,)) 
+        result = solve_ivp(self.derivatives, t_span=(0,self.tmax), y0=y, t_eval=t, args=(self.i_inj,)) 
         
-    #     vp = result.y[0,:]    #TODO: if conversion is done properly at the beggining then *milli is not needed
-    #     n = result.y[1,:]
-    #     m = result.y[2,:]
-    #     h = result.y[3,:]
+        vp = result.y[0,:]    
+        n = result.y[1,:]
+        m = result.y[2,:]
+        h = result.y[3,:]
 
         # err = np.abs((max(vp) - 1.05400725e+02)/(1.05400725e+02) *100)
         # print("The error percentage is:", err,"%")
-
 
         # ax = plt.subplot()
         # ax.plot(t, vp)
@@ -158,7 +147,6 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         # plt.savefig('Figures/Ion channel gating variables with respect to time')
         # plt.show()
 
-        # Trajectories with limit cycles
         # ax = plt.subplot()
         # ax.plot(vp, n, 'b', label='n(t)')
         # ax.plot(vp, m, 'g', label='m(t)')
@@ -166,20 +154,20 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         # ax.set_ylabel('Gating value')
         # ax.set_xlabel('Voltage (mV)')
         # ax.set_title('Limit cycles of the gating equations')
-        # plt.legend( loc='upper left')
         # plt.savefig('Figures/Limit Cycles')
         # plt.show()
 
+        # i_na = self.g_na * m**3.0 * h * (vp - self.vna )
+        # i_k = self.g_k * n**4.0 * (vp - self.vk )
+        # i_l = self.g_l * (vp - self.vl )
+
         # ax = plt.subplot()
-        # t  = np.linspace(0, self.tmax, len(i_na_trace))
-        # ax.plot(t, i_na_trace, 'b', label='Potassium Current')
-        # ax.plot(t, i_k_trace,  'g', label='Sodium Current')
-        # ax.plot(t, i_leak_trace,  'r', label='Leak Current')
+        # ax.plot(t, -i_na, 'b', label='$I_{Na}$')
+        # ax.plot(t, -i_k,  'g', label='$I_{K}$')
+        # ax.plot(t, -i_l,  'r', label='$I_{L}$')
         # ax.set_title('Channel currents')
         # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Current (uA)')
-        # plt.grid()
-        # plt.legend()
+        # ax.set_ylabel('Current (μA)')
         # plt.savefig('Figures/Channel currents')
         # plt.show()
 
