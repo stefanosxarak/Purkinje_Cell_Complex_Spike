@@ -6,8 +6,8 @@ from HH_model import *
 import time
 
 start_time = time.time()    # Monitor performance
-tmax = 30                   # Duration of the simulation
-i_na_trace = []             # Trace for graph purposes
+tmax = 35                   # Duration of the simulation
+i_na_trace = []             
 i_k_trace = []
 i_leak_trace = []
 
@@ -39,7 +39,7 @@ class Somatic_Voltage:
         i_k_trace.append(-i_k)
         i_leak_trace.append(-i_l)
 
-        deriv = (self.i_inj - i_na - i_k - i_l) / self.c_m                          # dV/dt
+        deriv = (self.i_inj - i_na - i_k - i_l) / self.c_m            # dV/dt
         return deriv
 
 class All_Derivatives:
@@ -111,15 +111,6 @@ class Model:
             i += step                                                      #  0: The solver successfully reached the end of t_span.
             print_const -= 1  
 
-        ax = plt.subplot()
-        ax.plot(bigt, bigv)
-        ax.set_xlabel('Time (ms)')
-        ax.set_ylabel('Membrane potential (mV)')
-        ax.set_title('Neuron potential')
-        plt.grid()
-        plt.savefig('Figures/Neuron Potential Full model')
-        plt.show()
-
         def graphs():
             ax = plt.subplot()
             ax.plot(bigt, bigo,c='r',label='o')
@@ -134,19 +125,15 @@ class Model:
             plt.savefig('Figures/Sodium inactivation and recovery states')
             plt.show()
             
-            t  = np.linspace(0, tmax, len(i_na_trace))
             ax = plt.subplot()
-            ax.plot(t, i_na_trace, 'b', label='Potassium Current')
-            ax.plot(t, i_k_trace,  'g', label='Sodium Current')
-            ax.plot(t, i_leak_trace,  'r', label='Leak Current')
-            ax.set_title('Channel currents')
+            ax.plot(bigt, bigv)
             ax.set_xlabel('Time (ms)')
-            ax.set_ylabel('Current (uA)')
+            ax.set_ylabel('Membrane potential (mV)')
+            ax.set_title('Neuron potential')
             plt.grid()
-            plt.legend()
-            plt.savefig('Figures/Channel currents')
+            plt.savefig('Figures/Neuron Potential Full model')
             plt.show()
-        # graphs()
+        graphs()
 
 if __name__ == '__main__':
     runner = Model()
