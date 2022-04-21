@@ -5,12 +5,12 @@ class Markov:            # Current through the sodium channel is described using
     def __init__(self,γ,δ,ε,d,u,n,f):    
 
         self.γ = γ       # m*s**(-1)
-        self.δ = δ       # m*s**(-1)
-        self.ε = ε       # m*s**(-1)
-        self.d = d       # m*s**(-1)
-        self.u = u       # m*s**(-1)
-        self.n = n       # m*s**(-1)
-        self.f = f       # m*s**(-1)
+        self.δ = δ      
+        self.ε = ε       
+        self.d = d       
+        self.u = u      
+        self.n = n       
+        self.f = f       
 
     def alpha(self,v):
 

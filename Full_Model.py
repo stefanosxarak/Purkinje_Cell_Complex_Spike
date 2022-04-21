@@ -7,9 +7,6 @@ import time
 
 start_time = time.time()    # Monitor performance
 tmax = 35                   # Duration of the simulation
-i_na_trace = []             
-i_k_trace = []
-i_leak_trace = []
 
 class Somatic_Voltage:
 
@@ -34,10 +31,6 @@ class Somatic_Voltage:
         i_na = GNa * (v - self.vna )
         i_k = GK * (v - self.vk )
         i_l = GL * (v - self.vl )
-
-        i_na_trace.append(-i_na)
-        i_k_trace.append(-i_k)
-        i_leak_trace.append(-i_l)
 
         deriv = (self.i_inj - i_na - i_k - i_l) / self.c_m            # dV/dt
         return deriv
@@ -80,14 +73,13 @@ class Model:
         v_initial = somatic_voltage.v_init
         f = All_Derivatives(somatic_voltage,mstates,hh)  # All derivatives in one function
 
-
         # c1_initial=mstates.beta(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
         # c2_initial=4*mstates.alpha(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
         # mstates.alpha(v_initial),mstates.beta(v_initial)
 
         # Initialisation
         y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
-        bigv=bigt=bigo=bigb=bigi6=bigc5 = np.array([])
+        bigv=bigt=bigo=bigb=bigi6=bigc5 =bign= np.array([])
         i = status = 0
         step = 0.0025
         print_const = 1
@@ -99,12 +91,13 @@ class Model:
             y = normalize(y_norm)                                          
 
             if print_const == 1:
-                bigv  = np.concatenate((bigv, result.y[0]))                       
-                bigt  = np.concatenate((bigt, result.t))   
+                bigv  = np.concatenate((bigv, result.y[0]))   
+                bign  = np.concatenate((bign, result.y[1]))                    
                 bigc5 = np.concatenate((bigc5, result.y[6]))     
                 bigi6 = np.concatenate((bigi6, result.y[12]))
                 bigo  = np.concatenate((bigo, result.y[13]))
                 bigb  = np.concatenate((bigb, result.y[14]))
+                bigt  = np.concatenate((bigt, result.t))   
                 print_const = print_n
 
             status = result.status                                         # -1: Integration step failed.
@@ -133,6 +126,27 @@ class Model:
             plt.grid()
             plt.savefig('Figures/Neuron Potential Full model')
             plt.show()
+
+            # vna=45. # current trace could not be done as sodium current was not normalised when traced
+            # vk=-88. 
+            # vl=-88.
+            # g_na=47.5
+            # g_k=200. 
+            # g_l=2
+            # i_na = g_na * bigo * (bigv - vna )
+            # i_k = g_k * bign**4.0 * (bigv - vk )
+            # i_l = g_l * (bigv - vl )
+
+            # ax = plt.subplot()
+            # ax.plot(bigt, -i_na, 'b', label='$I_{Na}$')
+            # ax.plot(bigt, -i_k,  'g', label='$I_{K}$')
+            # ax.plot(bigt, -i_l,  'r', label='$I_{L}$')
+            # ax.set_title('Channel currents')
+            # ax.set_xlabel('Time (ms)')
+            # ax.set_ylabel('Current (μA)')
+            # plt.legend()
+            # plt.savefig('Figures/Channel currents full model')
+            # plt.show()
         graphs()
 
 if __name__ == '__main__':
