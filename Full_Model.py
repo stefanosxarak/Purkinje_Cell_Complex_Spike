@@ -6,7 +6,7 @@ from HH_model import *
 import time
 
 start_time = time.time()    # Monitor performance
-tmax = 35                   # Duration of the simulation
+tmax = 35                 # Duration of the simulation
 
 class Somatic_Voltage:
 
@@ -52,7 +52,7 @@ class All_Derivatives:
 
         dv = self.somatic_voltage.derivative(v_soma,markov_o,n)                                                                 # Call dV/dt and pass the parameters
         dn = (self.hh.alpha_n(v_soma) * (1 - n)) - (self.hh.beta_n(v_soma) * n)                                                 # dn/dt
-        dm = self.markov.derivatives(markov_y,self.markov.alpha(v_soma),self.markov.beta(v_soma),self.markov.ksi(v_soma))
+        dm = self.markov.derivatives(t,markov_y,self.markov.alpha(v_soma), self.markov.beta(v_soma), self.markov.ksi(v_soma))
 
         all_derivatives = np.append([dv,dn],dm)
         return all_derivatives
@@ -79,7 +79,7 @@ class Model:
 
         # Initialisation
         y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
-        bigv=bigt=bigo=bigb=bigi6=bigc5 =bign= np.array([])
+        bigv=bigt=bigo=bigb=bigi6=bigc5= bign=np.array([])
         i = status = 0
         step = 0.0025
         print_const = 1
@@ -106,14 +106,13 @@ class Model:
 
         def graphs():
             ax = plt.subplot()
-            ax.plot(bigt, bigo,c='r',label='o')
-            ax.plot(bigt, bigb,c='b',label='b')
-            ax.plot(bigt, bigi6,c='orange',label='i6')
-            ax.plot(bigt, bigc5,c='g',label='c5')
+            ax.plot(bigt, bigo,  c='r',      label='o')
+            ax.plot(bigt, bigb,  c='b',      label='b')
+            ax.plot(bigt, bigi6, c='orange', label='i6')
+            ax.plot(bigt, bigc5, c='g',      label='c5')
             ax.set_title('Sodium inactivation and recovery states')
             ax.set_xlabel('Time (ms)')
-            ax.set_ylabel('Fraction')
-            plt.grid()
+            ax.set_ylabel('Gating value')
             plt.legend()
             plt.savefig('Figures/Sodium inactivation and recovery states')
             plt.show()
@@ -123,8 +122,18 @@ class Model:
             ax.set_xlabel('Time (ms)')
             ax.set_ylabel('Membrane potential (mV)')
             ax.set_title('Neuron potential')
-            plt.grid()
             plt.savefig('Figures/Neuron Potential Full model')
+            plt.show()
+
+            ax = plt.subplot()
+            ax.plot(bigt, bign,label='Potassium Channel')
+            ax.plot(bigt, bigo,label='Sodium Channel (Opening)')
+            ax.plot(bigt, bigb,label='Sodium Channel (Closing)')
+            ax.set_xlabel('Time (ms)')
+            ax.set_ylabel('Gating value')
+            ax.set_title('Neuron potential')
+            plt.legend()
+            plt.savefig('Figures/Ion currents Full model')
             plt.show()
 
             # vna=45. # current trace could not be done as sodium current was not normalised when traced

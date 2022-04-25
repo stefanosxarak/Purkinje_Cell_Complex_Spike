@@ -1,7 +1,9 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
 
+tmax = 35
 class Markov:            # Current through the sodium channel is described using a Markovian Scheme
-
     def __init__(self,γ,δ,ε,d,u,n,f):    
 
         self.γ = γ       # m*s**(-1)
@@ -24,7 +26,7 @@ class Markov:            # Current through the sodium channel is described using
 
         return 0.03 * np.exp(-v/25.)
 
-    def derivatives(self,y,α,β,ξ):
+    def derivatives(self,t,y,α,β,ξ):
 
         c0 = y[0]
         c1 = y[1]
@@ -80,3 +82,33 @@ class Markov:            # Current through the sodium channel is described using
         der[12] = o * ε - b*ξ                                                         # db/dt
 
         return der
+
+
+
+    def Main(self):     # Markov model for fixed voltage value v
+        v = 0           # fixed value
+        y = np.array([1,0,0,0,0,0,0,0,0,0,0,0,0])
+        bigo = np.array([])
+        bigt = np.array([])
+
+        for i in range(0,tmax):
+            markov = solve_ivp(self.derivatives, t_span=(i,i+1), y0=y, method='BDF',t_eval=np.linspace(i, i+1, 100), args=(self.alpha(v), self.beta(v), self.ksi(v)))
+
+            bigo = np.concatenate((bigo,markov.y[11,:]))    
+            bigt = np.concatenate((bigt,markov.t))          
+
+            # Normalising y 
+            y = markov.y[:,-1]
+            y = y/np.sum(y)
+
+            
+        ax = plt.subplot()
+        ax.plot(bigt, bigo)
+        ax.set_xlabel('Time (ms)')
+        plt.grid()
+        plt.show()
+
+
+if __name__ == '__main__':
+    runner = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005)
+    runner.Main()

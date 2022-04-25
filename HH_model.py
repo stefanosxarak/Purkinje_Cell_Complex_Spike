@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-class HodgkinHuxley:      # Hodgkin-Huxley model
+class HodgkinHuxley:      
 
     def __init__(self):        
         #   Initial parameters as stated in Hodgkin-Huxley(1952)
@@ -28,11 +28,11 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         if nom == 0 and denom == 0 :
             return 0.1
 
-        return (nom / denom)                         # Wiki equation(original HH)
+        return (nom / denom)                         # original HH
 
     def beta_n(self,v):
 
-        return (0.125 * np.exp(- v/ 80.))            # Wiki equation(original HH)
+        return (0.125 * np.exp(- v/ 80.))            # original HH
 
     def alpha_m(self,v):
 
@@ -66,28 +66,6 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
     def h_inf(self,v):
 
         return self.alpha_h(v) / (self.alpha_h(v) + self.beta_h(v))
-
-    # def frequency(self,y):
-
-    #     firing_rate = []
-    #     self.max_I = []
-    #     self.var_inj = np.linspace(0, self.i_inj, len(self.t))  
-    #     spikes = 0               
-    #     for i in range(len(self.var_inj)):
-    #         spikes = 0
-    #         result = solve_ivp(self.derivatives, t_span=(i,i/self.tmax), y0=y, args=(self.var_inj[i],),method='BDF') 
-    #         y = np.array([result.y[0,i], self.n_inf(result.y[0,i]), self.m_inf(result.y[0,i]), self.h_inf(result.y[0,i])], dtype= 'float64')
-    #         for n in range(len(self.t)):
-    #             if result.y[0,n] >= self.vthresh and result.y[0,n-1] < self.vthresh:        
-    #                 spikes += 1
-    #         firing_rate.append(spikes/self.tmax)
-
-    #     for i in range(len(self.var_inj)):
-    #         if firing_rate[i] ==0:
-    #             self.max_I.append(self.var_inj[i])          # threshold input current.
-    #     print(max(self.max_I))
-
-    #     return firing_rate
    
     def derivatives(self,t,y,inj):
 
@@ -97,7 +75,7 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         m = y[2]
         h = y[3]
 
-        GNa = self.g_na * m**3.0 * h    #    m and h is replaced by the markovian scheme
+        GNa = self.g_na * m**3.0 * h   
         GK = self.g_k * n**4.0
         GL = self.g_l
 
@@ -126,63 +104,51 @@ class HodgkinHuxley:      # Hodgkin-Huxley model
         m = result.y[2,:]
         h = result.y[3,:]
 
-        # err = np.abs((max(vp) - 1.05400725e+02)/(1.05400725e+02) *100)
-        # print("The error percentage is:", err,"%")
+        err = np.abs((max(vp) - 1.05400725e+02)/(1.05400725e+02) *100)
+        print("The error percentage is:", err,"%")
 
-        # ax = plt.subplot()
-        # ax.plot(t, vp)
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Membrane potential (mV)')
-        # ax.set_title('Neuron potential')
-        # plt.savefig('Figures/Neuron Potential')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, vp)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Membrane potential (mV)')
+        ax.set_title('Neuron potential')
+        plt.savefig('Figures/Neuron Potential')
+        plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(t, n, 'b', label='Potassium Channel: n')
-        # ax.plot(t, m, 'g', label='Sodium Channel (Opening): m')
-        # ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_title('Ion gating variables')
-        # plt.savefig('Figures/Ion channel gating variables with respect to time')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, n, 'b', label='Potassium Channel: n')
+        ax.plot(t, m, 'g', label='Sodium Channel (Opening): m')
+        ax.plot(t, h, 'r', label='Sodium Channel (Closing): h')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Time (ms)')
+        ax.set_title('Ion gating variables')
+        plt.savefig('Figures/Ion channel gating variables with respect to time')
+        plt.show()
 
-        # ax = plt.subplot()
-        # ax.plot(vp, n, 'b', label='n(t)')
-        # ax.plot(vp, m, 'g', label='m(t)')
-        # ax.plot(vp, h, 'r', label='h(t)')
-        # ax.set_ylabel('Gating value')
-        # ax.set_xlabel('Voltage (mV)')
-        # ax.set_title('Limit cycles of the gating equations')
-        # plt.savefig('Figures/Limit Cycles')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(vp, n, 'b', label='n(t)')
+        ax.plot(vp, m, 'g', label='m(t)')
+        ax.plot(vp, h, 'r', label='h(t)')
+        ax.set_ylabel('Gating value')
+        ax.set_xlabel('Voltage (mV)')
+        ax.set_title('Limit cycles of the gating equations')
+        plt.savefig('Figures/Limit Cycles')
+        plt.show()
 
-        # i_na = self.g_na * m**3.0 * h * (vp - self.vna )
-        # i_k = self.g_k * n**4.0 * (vp - self.vk )
-        # i_l = self.g_l * (vp - self.vl )
+        i_na = self.g_na * m**3.0 * h * (vp - self.vna )
+        i_k = self.g_k * n**4.0 * (vp - self.vk )
+        i_l = self.g_l * (vp - self.vl )
 
-        # ax = plt.subplot()
-        # ax.plot(t, -i_na, 'b', label='$I_{Na}$')
-        # ax.plot(t, -i_k,  'g', label='$I_{K}$')
-        # ax.plot(t, -i_l,  'r', label='$I_{L}$')
-        # ax.set_title('Channel currents')
-        # ax.set_xlabel('Time (ms)')
-        # ax.set_ylabel('Current (μA)')
-        # plt.savefig('Figures/Channel currents')
-        # plt.show()
+        ax = plt.subplot()
+        ax.plot(t, -i_na, 'b', label='$I_{Na}$')
+        ax.plot(t, -i_k,  'g', label='$I_{K}$')
+        ax.plot(t, -i_l,  'r', label='$I_{L}$')
+        ax.set_title('Channel currents')
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Current (μA)')
+        plt.savefig('Figures/Channel currents')
+        plt.show()
 
-        # F-I curve
-        # firing_rate = self.frequency(y)
-        # ax = plt.subplot()
-        # ax.plot(self.var_inj, firing_rate)
-        # ax.plot(max(self.max_I),0,c='r',marker='o', label="threshold input current")
-        # ax.set_xlabel("Input Current(uA)")
-        # ax.set_ylabel("Firing rate(kHz)")
-        # ax.set_title('f-I Curve')
-        # plt.legend()
-        # plt.savefig('f-I Curve')
-        # plt.show()
-
-# if __name__ == '__main__':
-#     runner = HodgkinHuxley()
-#     runner.run()
+if __name__ == '__main__':
+    runner = HodgkinHuxley()
+    runner.run()
