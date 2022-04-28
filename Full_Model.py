@@ -68,14 +68,10 @@ class Model:
         mstates = Markov(γ=150., δ=40., ε=1.75, d=0.005, u=0.5, n=0.75, f=0.005) 
         hh = HodgkinHuxley() 
 
-        somatic_voltage=Somatic_Voltage(g_na=47.5, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values from research paper
+        somatic_voltage=Somatic_Voltage(g_na=47.5, g_k=200., g_l=2., c_m=1., v_init=-65., vna=45., vk=-88., vl=-88., i_inj=62.46)             # Parameter values
 
         v_initial = somatic_voltage.v_init
         f = All_Derivatives(somatic_voltage,mstates,hh)  # All derivatives in one function
-
-        # c1_initial=mstates.beta(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
-        # c2_initial=4*mstates.alpha(v_initial)/(4*mstates.alpha(v_initial)+mstates.beta(v_initial))
-        # mstates.alpha(v_initial),mstates.beta(v_initial)
 
         # Initialisation
         y = np.array([v_initial,hh.n_inf(v_initial),1,0,0,0,0,0,0,0,0,0,0,0,0],dtype='float64')
@@ -106,6 +102,14 @@ class Model:
 
         def graphs():
             ax = plt.subplot()
+            ax.plot(bigt, bigv)
+            ax.set_xlabel('Time (ms)')
+            ax.set_ylabel('Membrane potential (mV)')
+            ax.set_title('Neuron potential')
+            plt.savefig('Figures/Neuron Potential Full model')
+            plt.show()
+
+            ax = plt.subplot()
             ax.plot(bigt, bigo,  c='r',      label='o')
             ax.plot(bigt, bigb,  c='b',      label='b')
             ax.plot(bigt, bigi6, c='orange', label='i6')
@@ -118,44 +122,15 @@ class Model:
             plt.show()
             
             ax = plt.subplot()
-            ax.plot(bigt, bigv)
-            ax.set_xlabel('Time (ms)')
-            ax.set_ylabel('Membrane potential (mV)')
-            ax.set_title('Neuron potential')
-            plt.savefig('Figures/Neuron Potential Full model')
-            plt.show()
-
-            ax = plt.subplot()
             ax.plot(bigt, bign,label='Potassium Channel')
             ax.plot(bigt, bigo,label='Sodium Channel (Opening)')
             ax.plot(bigt, bigb,label='Sodium Channel (Closing)')
             ax.set_xlabel('Time (ms)')
             ax.set_ylabel('Gating value')
-            ax.set_title('Neuron potential')
             plt.legend()
             plt.savefig('Figures/Ion currents Full model')
             plt.show()
 
-            # vna=45. # current trace could not be done as sodium current was not normalised when traced
-            # vk=-88. 
-            # vl=-88.
-            # g_na=47.5
-            # g_k=200. 
-            # g_l=2
-            # i_na = g_na * bigo * (bigv - vna )
-            # i_k = g_k * bign**4.0 * (bigv - vk )
-            # i_l = g_l * (bigv - vl )
-
-            # ax = plt.subplot()
-            # ax.plot(bigt, -i_na, 'b', label='$I_{Na}$')
-            # ax.plot(bigt, -i_k,  'g', label='$I_{K}$')
-            # ax.plot(bigt, -i_l,  'r', label='$I_{L}$')
-            # ax.set_title('Channel currents')
-            # ax.set_xlabel('Time (ms)')
-            # ax.set_ylabel('Current (μA)')
-            # plt.legend()
-            # plt.savefig('Figures/Channel currents full model')
-            # plt.show()
         graphs()
 
 if __name__ == '__main__':
